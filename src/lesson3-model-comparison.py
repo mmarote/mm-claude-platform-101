@@ -11,37 +11,38 @@ https://academy.claude.com/courses/claude-platform-101/choosing-the-right-model
 
 import asyncio
 import anthropic
+from models import ALL
+from log_helper import log_model_request, log_answer_to_user, log_model_usage, Stopwatch
+
 
 client = anthropic.AsyncAnthropic()
 
-buggy_code = """
+max_tokens = 2048
+system_prompt = "You are a terse senior code reviewer. Give feedback in one paragraph."
+user_prompt = """Review this code:
 function add(a, b) {
   return a - b;
 }
 """
+messages = [{"role": "user", "content": f"{user_prompt}"}]
 
-SYSTEM_PROMPT = "You are a terse senior code reviewer. Give feedback in one paragraph."
-USER_PROMPT = f"Review this code:\n{buggy_code}"
-
-models = ["claude-haiku-5-5", "claude-sonnet-5-5", "claude-opus-5-5"]
 
 async def main():
-    for model in models:
-        response = await client.messages.create(
-            model=model,
-            max_tokens=2048,
-            system=SYSTEM_PROMPT,
-            messages=[
-                {"role": "user", "content": USER_PROMPT},
-            ],
-        )
-        print("")
-        print(model)
-        print(f"USAGE: {response.usage}")
+    for model in ALL:
 
-        for block in response.content:
-            if block.type == "text":
-                print(f"RESPONSE: {block.text}")
+        log_model_request(model=model, max_tokens=max_tokens, system=system_prompt, messages=messages)
+
+        with Stopwatch() as sw:
+            response = await client.messages.create(
+                model=model,
+                max_tokens=max_tokens,
+                system=system_prompt,
+                messages=messages,
+            )
+
+        log_model_usage(response, elapsed=sw.seconds)
+
+        log_answer_to_user(response)
 
 
 asyncio.run(main())
