@@ -5,7 +5,7 @@ Six functions, one per thing worth seeing:
 
     log_model_request(...)    what we send to Claude
     log_model_response(...)   what Claude sends back (text and tool requests)
-    log_model_usage(...)      tokens used by a call
+    log_model_usage(...)      tokens used by a call, and how long it took
     log_tool_request(...)     a tool call we are about to run
     log_tool_response(...)    what the tool returned
     log_answer_to_user(...)   Claude's final answer, the app's real output
@@ -13,13 +13,14 @@ Six functions, one per thing worth seeing:
 Usage:
     from log_helper import (
         log_model_request, log_model_response, log_model_usage,
-        log_tool_request, log_tool_response, log_answer_to_user,
+        log_tool_request, log_tool_response, log_answer_to_user, Stopwatch,
     )
 
     log_model_request(model=CHEAPEST, max_tokens=1024, messages=messages, tools=tools)
-    response = await client.messages.create(...)
+    with Stopwatch() as sw:
+        response = await client.messages.create(...)
     log_model_response(response)
-    log_model_usage(response)
+    log_model_usage(response, elapsed=sw.seconds)
 
     log_tool_request(block.name, block.input)
     result = await run_tool(block.name, block.input)
@@ -32,9 +33,23 @@ log_answer_to_user is not a debug log, so it always prints.
 """
 
 import json
+import time
 
 ENABLED = True
 MAX_CHARS = 1000  # long values are cut so the console stays readable
+
+
+class Stopwatch:
+    """Time a block of code: `with Stopwatch() as sw: ...` then read `sw.seconds`."""
+
+    seconds = 0.0
+
+    def __enter__(self):
+        self._start = time.perf_counter()
+        return self
+
+    def __exit__(self, *exc_info):
+        self.seconds = time.perf_counter() - self._start
 
 
 def _show(value, indent=2) -> str:
@@ -108,11 +123,13 @@ def log_model_response(response) -> None:
             print(_indent(_show(block)))
 
 
-def log_model_usage(response, label=None) -> None:
-    """Log how many tokens a call used.
+def log_model_usage(response, label=None, elapsed=None) -> None:
+    """Log how many tokens a call used and, if given, how long it took.
 
     `label` replaces the model name in the header, which helps when you
     log several calls from the same model.
+    `elapsed` is the call duration in seconds (see Stopwatch). The API
+    response doesn't contain it, so the caller has to measure it.
     """
     if not ENABLED:
         return
@@ -120,11 +137,16 @@ def log_model_usage(response, label=None) -> None:
     title = label or getattr(response, "model", "?")
     if usage is None:
         print(f"\n$ USAGE {title}: not reported")
+        if elapsed is not None:
+            print(f"   time:          {elapsed:.2f}s")
         return
     print(f"\n$ USAGE {title}")
     print(f"   input_tokens:  {usage.input_tokens}")
     print(f"   output_tokens: {usage.output_tokens}")
     print(f"   total_tokens:  {usage.input_tokens + usage.output_tokens}")
+    if elapsed is not None:
+        speed = f" ({usage.output_tokens / elapsed:.0f} output tokens/s)" if elapsed > 0 else ""
+        print(f"   time:          {elapsed:.2f}s{speed}")
     # Prompt-caching counters: only shown when the API reports them and they are not zero.
     for name in ("cache_read_input_tokens", "cache_creation_input_tokens"):
         count = getattr(usage, name, None)
