@@ -41,11 +41,7 @@ The tool-use scripts are intentionally simple:
 
    `.env` is listed in `.gitignore`, so your key will not be committed.
 
-   The scripts don't call `load_dotenv()` themselves. The Anthropic client reads `ANTHROPIC_API_KEY` from the environment, so export it before running:
-
-   ```bash
-   set -a; source .env; set +a
-   ```
+   That's all you need. [src/models.py](src/models.py) calls `load_dotenv()`, and every script imports it, so the key is loaded automatically. If `ANTHROPIC_API_KEY` is already exported in your shell, that value takes priority over `.env`.
 
 ## Running
 
