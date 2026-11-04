@@ -1,0 +1,65 @@
+# Claude Platform 101 – Practice Scripts
+
+Practice scripts I wrote while following the **Claude Platform 101** course on [Anthropic Academy](https://academy.claude.com/courses/claude-platform-101). Each script in `src/` maps to one lesson and is meant for learning and experimentation, not production use.
+
+## Scripts
+
+| Script | Lesson | What it demonstrates |
+| --- | --- | --- |
+| [lesson2-model-call.py](src/lesson2-model-call.py) | [Your first API call](https://academy.claude.com/courses/claude-platform-101/your-first-api-call) | Sends a buggy JavaScript snippet to Claude with a system prompt and prints the code review. |
+| [lesson3-model-comparison.py](src/lesson3-model-comparison.py) | [Choosing the right model](https://academy.claude.com/courses/claude-platform-101/choosing-the-right-model) | Runs the same prompt against Haiku, Sonnet and Opus and prints each response with its token usage, to compare quality and cost. |
+| [lesson4-agent-with-1-stubbed-tool.py](src/lesson4-agent-with-1-stubbed-tool.py) | [The agent loop explained](https://academy.claude.com/courses/claude-platform-101/the-agent-loop-explained) | A minimal agent loop with one stubbed tool (`get_weather`) that switches on `stop_reason`. |
+| [lesson5-agent-with-2-stubbed-tools.py](src/lesson5-agent-with-2-stubbed-tools.py) | [What is tool use?](https://academy.claude.com/courses/claude-platform-101/what-is-tool-use) | The same loop with two stubbed tools (`get_weather`, `get_forecast`), plus verbose logging of every request and response. |
+
+### Known simplifications
+
+The tool-use scripts are intentionally simple:
+
+- Tool definitions are hardcoded in the script.
+- Tool results are stubbed and return unstructured text. A real app would call an API or database and return JSON.
+
+## Prerequisites
+
+- Python 3.10+
+- An [Anthropic API key](https://console.anthropic.com/)
+
+## Setup
+
+1. Create and activate a virtual environment, then install dependencies:
+
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate   # Windows: .venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+
+2. Create a `.env` file in the project root:
+
+   ```
+   ANTHROPIC_API_KEY=your-api-key
+   ```
+
+   `.env` is listed in `.gitignore`, so your key will not be committed.
+
+   The scripts don't call `load_dotenv()` themselves. The Anthropic client reads `ANTHROPIC_API_KEY` from the environment, so export it before running:
+
+   ```bash
+   set -a; source .env; set +a
+   ```
+
+## Running
+
+Run any script from the project root:
+
+```bash
+python src/lesson2-model-call.py
+python src/lesson3-model-comparison.py
+python src/lesson4-agent-with-1-stubbed-tool.py
+python src/lesson5-agent-with-2-stubbed-tools.py
+```
+
+Each call to the API is billed to your account. Lesson 3 calls three models, including Opus, so it costs the most.
+
+## Dependencies
+
+Pinned in [requirements.txt](requirements.txt). The main ones are `anthropic` (the SDK) and `python-dotenv`.
