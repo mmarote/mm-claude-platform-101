@@ -1,0 +1,158 @@
+"""
+Small logging helpers for the Claude Platform 101 lessons.
+
+Six functions, one per thing worth seeing:
+
+    log_model_request(...)    what we send to Claude
+    log_model_response(...)   what Claude sends back (text and tool requests)
+    log_model_usage(...)      tokens used by a call
+    log_tool_request(...)     a tool call we are about to run
+    log_tool_response(...)    what the tool returned
+    log_answer_to_user(...)   Claude's final answer, the app's real output
+
+Usage:
+    from log_helper import (
+        log_model_request, log_model_response, log_model_usage,
+        log_tool_request, log_tool_response, log_answer_to_user,
+    )
+
+    log_model_request(model=CHEAPEST, max_tokens=1024, messages=messages, tools=tools)
+    response = await client.messages.create(...)
+    log_model_response(response)
+    log_model_usage(response)
+
+    log_tool_request(block.name, block.input)
+    result = await run_tool(block.name, block.input)
+    log_tool_response(block.name, result)
+
+    log_answer_to_user(response)    # when Claude is done
+
+Turn the debug logs off with `log_helper.ENABLED = False`.
+log_answer_to_user is not a debug log, so it always prints.
+"""
+
+import json
+
+ENABLED = True
+MAX_CHARS = 1000  # long values are cut so the console stays readable
+
+
+def _show(value, indent=2) -> str:
+    """Turn almost anything (dicts, SDK objects, strings) into readable text.
+
+    indent=None gives compact one-line JSON, used for short values like tool inputs.
+    """
+    if isinstance(value, str):
+        text = value
+    else:
+        try:
+            text = json.dumps(value, indent=indent, default=_to_jsonable)
+        except TypeError:
+            text = str(value)
+    if len(text) > MAX_CHARS:
+        text = text[:MAX_CHARS] + f"... [{len(text) - MAX_CHARS} more chars]"
+    return text
+
+
+def _to_jsonable(obj):
+    """json.dumps fallback: SDK response objects are pydantic models."""
+    if hasattr(obj, "model_dump"):
+        return obj.model_dump(exclude_none=True)
+    return str(obj)
+
+
+def _tool_names(tools) -> list[str]:
+    """Tools may be plain dicts or decorated functions; show just the names."""
+    names = []
+    for tool in tools or []:
+        if isinstance(tool, dict):
+            names.append(tool.get("name", "?"))
+        else:
+            names.append(getattr(tool, "name", None) or str(tool))
+    return names
+
+
+def _indent(text: str, prefix: str = "    ") -> str:
+    return "\n".join(prefix + line for line in text.splitlines())
+
+
+def log_model_request(*, model, max_tokens=None, messages=None, system=None, tools=None) -> None:
+    """Log the request about to be sent to Claude."""
+    if not ENABLED:
+        return
+    print("\n-> REQUEST to Claude")
+    print(f"   model:      {model}")
+    if max_tokens is not None:
+        print(f"   max_tokens: {max_tokens}")
+    if system:
+        print(f"   system:     {_show(system)}")
+    if tools:
+        print(f"   tools:      {_tool_names(tools)}")
+    print("   messages:")
+    print(_indent(_show(messages or [])))
+
+
+def log_model_response(response) -> None:
+    """Log Claude's response: stop reason, text and tool requests (see log_model_usage for tokens)."""
+    if not ENABLED:
+        return
+    print("\n<- RESPONSE from Claude")
+    print(f"   stop_reason: {response.stop_reason}")
+    for block in response.content:
+        if block.type == "text":
+            print(f"   text:        {_show(block.text)}")
+        elif block.type == "tool_use":
+            print(f"   tool_use:    {block.name}({_show(block.input, indent=None)})  id={block.id}")
+        else:
+            print(f"   {block.type}:")
+            print(_indent(_show(block)))
+
+
+def log_model_usage(response, label=None) -> None:
+    """Log how many tokens a call used.
+
+    `label` replaces the model name in the header, which helps when you
+    log several calls from the same model.
+    """
+    if not ENABLED:
+        return
+    usage = getattr(response, "usage", None)
+    title = label or getattr(response, "model", "?")
+    if usage is None:
+        print(f"\n$ USAGE {title}: not reported")
+        return
+    print(f"\n$ USAGE {title}")
+    print(f"   input_tokens:  {usage.input_tokens}")
+    print(f"   output_tokens: {usage.output_tokens}")
+    print(f"   total_tokens:  {usage.input_tokens + usage.output_tokens}")
+    # Prompt-caching counters: only shown when the API reports them and they are not zero.
+    for name in ("cache_read_input_tokens", "cache_creation_input_tokens"):
+        count = getattr(usage, name, None)
+        if count:
+            print(f"   {name}: {count}")
+
+
+def log_tool_request(name: str, tool_input) -> None:
+    """Log a tool call right before we run it."""
+    if not ENABLED:
+        return
+    print(f"\n-> RUNNING tool: {name}")
+    print(f"   input:  {_show(tool_input, indent=None)}")
+
+
+def log_tool_response(name: str, result) -> None:
+    """Log what the tool returned, right after we run it."""
+    if not ENABLED:
+        return
+    print(f"<- TOOL RESULT: {name}")
+    print(f"   output: {_show(result, indent=None)}")
+
+
+def log_answer_to_user(response) -> None:
+    """Print Claude's final text answer for the user.
+
+    Unlike the other helpers this ignores ENABLED: it is the program's
+    output, not a debug log, so silencing the logs must not hide it.
+    """
+    text = "".join(block.text for block in response.content if block.type == "text")
+    print(f"\n=== ANSWER TO USER ===\n{text}")
