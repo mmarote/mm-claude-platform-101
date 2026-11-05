@@ -273,7 +273,7 @@ def render_home():
     )
     st.write("")
 
-    st.subheader("Pick a lesson")
+    st.subheader("Pick a lesson", anchor=False)
     columns = st.columns(len(groups))
     for column, (folder, scripts) in zip(columns, groups.items()):
         icon, title, text = SECTIONS.get(folder[:2], ("📘", folder, ""))
@@ -303,7 +303,7 @@ else:
     current = Path(st.session_state.selected)
     with st.sidebar:
         st.button("← All sections", on_click=go_home, use_container_width=True)
-        st.subheader(SECTIONS.get(current.parent.name[:2], ("", current.parent.name, ""))[1])
+        st.subheader(SECTIONS.get(current.parent.name[:2], ("", current.parent.name, ""))[1], anchor=False)
         for number, paths in lesson_groups(groups[current.parent.name]).items():
             st.button(group_label(number, paths), key=f"nav-{number}", on_click=open_lesson, args=(paths[0],),
                       type="primary" if current in paths else "secondary", use_container_width=True)
@@ -335,7 +335,7 @@ if len(examples) > 1:
         column.button(variant_label(example), key=f"example-{example}", on_click=open_lesson, args=(example,),
                       type="primary" if example == script else "secondary", use_container_width=True)
 
-st.header(title.removeprefix("Claude Platform 101: ") if title else script.stem)
+st.header(title.removeprefix("Claude Platform 101: ") if title else script.stem, anchor=False)
 st.write(intro)
 
 warning = next((text for prefix, text in WARNINGS.items() if script.name.startswith(prefix)), None)
