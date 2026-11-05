@@ -7,6 +7,9 @@ and the output might not hold up. Each model has different trade-offs, and
 picking the right one affects both quality and cost.
 
 https://academy.claude.com/courses/claude-platform-101/choosing-the-right-model
+
+The log_* calls come from log_helper.py and only print what is happening;
+they are not part of the lesson.
 """
 
 import asyncio

@@ -6,6 +6,9 @@ In this lesson we'll send Claude something real and get structured insight
 back — in just under 20 lines of code.
 
 https://academy.claude.com/courses/claude-platform-101/your-first-api-call
+
+The log_* calls come from log_helper.py and only print what is happening;
+they are not part of the lesson.
 """
 
 import asyncio
