@@ -60,7 +60,7 @@ The tool-use scripts are intentionally simple:
 
    ```bash
    python -m venv .venv
-   source .venv/bin/activate   # Windows: .venv\Scripts\activate
+   source .venv/bin/activate   # Windows PowerShell: .venv\Scripts\Activate.ps1
    pip install -r requirements.txt
    ```
 
@@ -96,6 +96,14 @@ PYTHONPATH=src python src/03-extending-your-agent/lesson8a-skills.py
 PYTHONPATH=src python src/03-extending-your-agent/lesson8b-skills-with-scripts.py
 ```
 
+On Windows (PowerShell), set the variable on its own line instead:
+
+```powershell
+.venv\Scripts\Activate.ps1
+$env:PYTHONPATH = "src"
+python src/01-what-is-the-claude-platform/lesson2-first-api-call.py
+```
+
 Each call to the API is billed to your account. Lesson 3 calls three models, including Opus, so it costs the most.
 
 ## Runner UI (optional)
@@ -103,9 +111,11 @@ Each call to the API is billed to your account. Lesson 3 calls three models, inc
 A small web app to run the lessons by clicking, instead of typing commands. The lessons are listed on the left, grouped by course section. Select one to read its code, press **Run** to see the output, and use **Side by side** to show code and output together. Claude's final answers are highlighted in green boxes.
 
 ```bash
-pip install -r runner-ui/requirements.txt
-streamlit run runner-ui/app.py
+pip install -r runner-ui/requirements.txt   # once, with the virtual environment active
+python run_ui.py
 ```
+
+`python run_ui.py` is the same on macOS, Linux and Windows, and it finds the project's virtual environment by itself, so you do not need to activate it first. Extra arguments go to Streamlit, for example `python run_ui.py --server.port 8600`.
 
 It only reads the scripts in `src/` and runs them as subprocesses, with the same `PYTHONPATH=src` as above, so it needs no changes to the lessons. Every Run calls the API, so it is billed to your account like running the script yourself. The code is in [runner-ui/app.py](runner-ui/app.py).
 
