@@ -24,7 +24,7 @@ from anthropic import beta_async_tool
 from pydantic import Field  # NEW
 from models import CHEAPEST
 from log_helper import (
-    log_turn, log_model_request, log_model_response, log_model_usage,
+    log_turn, log_model_request, log_model_response,
     log_tool_request, log_tool_response, log_answer_to_user,
 )
 
@@ -36,7 +36,8 @@ client = anthropic.AsyncAnthropic()
 # =============================================================================
 # NEW: name and description are explicit, and the parameter is described with
 # Annotated + Field. No docstring is needed for the schema.
-# The tool body is also where the work happens (see SECTION 2).
+# The function body is the tool's implementation: it is what runs when Claude
+# asks for this tool, so definition and implementation live together.
 @beta_async_tool(
     name="get_weather",
     description="Get today's current weather for a city.",
@@ -104,13 +105,25 @@ async def main():
 
     log_model_request(model=model, max_tokens=max_tokens, messages=messages, tools=tools)
 
-    # Each item the runner yields is one response from Claude (one turn).
+    # The turns still happen, but the runner makes the calls to Claude itself
+    # (and runs the tools in between). So we only log the first request, and
+    # each turn's response as the runner yields it. With tools that is two turns:
+    # the tool request, then the answer.
+    note = "request not shown: the tool runner sent it, with the tool results"
     turn = 0
-    async for message in runner:
+
+    # =========================================================================
+    # CRITICAL LINE (same as lesson 5c): this loop is what runs the agent. Do not remove it.
+    # Creating the runner above sends NOTHING to Claude. The runner only starts
+    # working when we iterate over it. Each pass of this loop makes one call to
+    # Claude, runs the tools it asks for, and hands us the response.
+    # Without this line there are no API calls, no tool runs and no answer.
+    # (The log_* lines inside the loop are optional. The loop itself is not.)
+    # =========================================================================
+    async for message in runner:    # <-- CRITICAL LINE
         turn += 1
-        log_turn(turn)
+        log_turn(turn, note=note if turn > 1 else None)
         log_model_response(message)
-        log_model_usage(message)
 
     log_answer_to_user(message)  # the last message is Claude's final answer
 
