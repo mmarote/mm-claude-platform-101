@@ -16,6 +16,7 @@ import time
 from pathlib import Path
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src"
@@ -209,6 +210,37 @@ if "run_requested" not in st.session_state:
     st.session_state.run_requested = False
 
 
+# While a script runs, keep the newest output in view. Streamlit has no setting for this, so a tiny
+# script in an invisible iframe scrolls the page (and the output pane in side-by-side mode) to the
+# bottom a few times per second. It stops following as soon as you scroll up, and it disappears
+# when the run ends, because the iframe is removed.
+AUTOSCROLL_JS = """
+<script>
+const doc = window.parent.document;
+let following = true;
+doc.addEventListener("wheel", (event) => { if (event.deltaY < 0) following = false; }, { passive: true });
+doc.addEventListener("touchmove", () => { following = false; }, { passive: true });
+
+function scrollTargets() {
+  const targets = [doc.querySelector('[data-testid="stMain"]') || doc.querySelector("section.main")];
+  for (const element of doc.querySelectorAll("div")) {
+    const overflow = getComputedStyle(element).overflowY;
+    if ((overflow === "auto" || overflow === "scroll") && element.scrollHeight > element.clientHeight + 5
+        && !element.closest('[data-testid="stSidebar"]') && !element.closest('[data-testid="stCode"]')) {
+      targets.push(element);
+    }
+  }
+  return targets.filter(Boolean);
+}
+
+setInterval(() => {
+  if (!following) return;
+  for (const element of scrollTargets()) element.scrollTop = element.scrollHeight;
+}, 250);
+</script>
+"""
+
+
 def toggle_view():
     st.session_state.view = "Code" if st.session_state.view == "Output" else "Output"
 
@@ -387,8 +419,14 @@ def render_output(container):
         box = st.empty()
         if st.session_state.run_requested:
             st.session_state.run_requested = False
-            with st.spinner("Running..."):
-                output, code, seconds = run(script, box)
+            scroller = st.empty()
+            with scroller:
+                components.html(AUTOSCROLL_JS, height=0)
+            try:
+                with st.spinner("Running..."):
+                    output, code, seconds = run(script, box)
+            finally:
+                scroller.empty()   # removes the iframe, which stops the scrolling
             st.session_state.results[str(script)] = (output, code, seconds)
         result = st.session_state.results.get(str(script))
         if result:
