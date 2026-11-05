@@ -16,6 +16,7 @@ Practice scripts I wrote while following the **Claude Platform 101** course on [
 | [lesson6-extended-thinking.py](src/lesson6-extended-thinking.py) | [What is thinking?](https://academy.claude.com/courses/claude-platform-101/what-is-thinking) | **+ extended thinking** (`thinking`, `output_config`), with token usage and time per turn. |
 | [lesson7a-built-in-tools-server-side-web-search.py](src/lesson7a-built-in-tools-server-side-web-search.py) | [Built-in tools](https://academy.claude.com/courses/claude-platform-101/built-in-tools) | The built-in **web search** server tool: declared with just a type and a name, run by Anthropic. Compares the basic and the newer (dynamic filtering) versions. |
 | [lesson7b-built-in-tools-server-side-code-execution.py](src/lesson7b-built-in-tools-server-side-code-execution.py) | same | The built-in **code execution** server tool: Claude writes and runs Python in an Anthropic-hosted sandbox. |
+| [lesson7c-built-in-tools-client-side-memory.py](src/lesson7c-built-in-tools-client-side-memory.py) | same | The built-in **memory** client tool. Two separate conversations: Claude saves a fact in the first and reads it back in the second. The SDK helper runs the commands on a temp folder, so it is safe. |
 
 ### How the tool lessons are organized
 
@@ -76,6 +77,7 @@ python src/lesson5d-tool-runner-with-metadata.py
 python src/lesson6-extended-thinking.py
 python src/lesson7a-built-in-tools-server-side-web-search.py
 python src/lesson7b-built-in-tools-server-side-code-execution.py
+python src/lesson7c-built-in-tools-client-side-memory.py
 ```
 
 Each call to the API is billed to your account. Lesson 3 calls three models, including Opus, so it costs the most.
