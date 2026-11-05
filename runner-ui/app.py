@@ -17,8 +17,12 @@ import streamlit as st
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src"
-VENV_PYTHON = ROOT / ".venv" / "bin" / "python"
-PYTHON = str(VENV_PYTHON) if VENV_PYTHON.exists() else sys.executable
+# The virtual environment's Python: .venv/bin/python on macOS and Linux, .venv\\Scripts\\python.exe on Windows.
+VENV_PYTHON = next(
+    (p for p in (ROOT / ".venv" / "bin" / "python", ROOT / ".venv" / "Scripts" / "python.exe") if p.exists()),
+    None,
+)
+PYTHON = str(VENV_PYTHON) if VENV_PYTHON else sys.executable
 
 # Extra warnings shown next to a lesson (matched on the file name prefix).
 WARNINGS = {
@@ -52,7 +56,7 @@ def discover():
 
 def description(path):
     """The title and first paragraph of the script's docstring."""
-    doc = ast.get_docstring(ast.parse(path.read_text())) or ""
+    doc = ast.get_docstring(ast.parse(path.read_text(encoding="utf-8"))) or ""
     title, _, rest = doc.partition("\n")
     first = rest.strip().split("\n\n")[0].replace("\n", " ")
     return title, first
@@ -109,11 +113,13 @@ def show(box, output):
 
 def run(path, box):
     """Run a script, streaming its output as it arrives. Returns (output, exit code, seconds)."""
-    env = {**os.environ, "PYTHONPATH": str(SRC), "PYTHONUNBUFFERED": "1"}
+    # UTF-8 on both sides of the pipe: on Windows the default encoding cannot print the emoji and box characters.
+    env = {**os.environ, "PYTHONPATH": str(SRC), "PYTHONUNBUFFERED": "1", "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"}
     start = time.perf_counter()
     proc = subprocess.Popen(
         [PYTHON, "-u", str(path)], cwd=ROOT, env=env,
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1,
+        encoding="utf-8", errors="replace",
     )
     output = ""
     for line in proc.stdout:
@@ -210,9 +216,9 @@ if side_by_side:
     # Both panes scroll on their own, so a long lesson does not push the output off screen.
     left, right = st.columns(2)
     with left:
-        st.code(script.read_text(), language="python", line_numbers=True, height=700)
+        st.code(script.read_text(encoding="utf-8"), language="python", line_numbers=True, height=700)
     render_output(right.container(height=700))
 elif showing_output:
     render_output(st.container())
 else:
-    st.code(script.read_text(), language="python", line_numbers=True)
+    st.code(script.read_text(encoding="utf-8"), language="python", line_numbers=True)
