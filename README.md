@@ -14,8 +14,8 @@ Practice scripts I wrote while following the **Claude Platform 101** course on [
 | [lesson5c-tool-runner.py](src/lesson5c-tool-runner.py) | same | **+ `@beta_async_tool` decorators and the SDK tool runner.** No JSON schemas, no `run_tool`, no while loop. |
 | [lesson5d-tool-runner-with-metadata.py](src/lesson5d-tool-runner-with-metadata.py) | same | **+ explicit tool name/description and `Annotated[..., Field]`** parameter metadata. |
 | [lesson6-extended-thinking.py](src/lesson6-extended-thinking.py) | [What is thinking?](https://academy.claude.com/courses/claude-platform-101/what-is-thinking) | **+ extended thinking** (`thinking`, `output_config`), with token usage and time per turn. |
-| [lesson7a-web-search.py](src/lesson7a-web-search.py) | [Built-in tools](https://academy.claude.com/courses/claude-platform-101/built-in-tools) | The built-in **web search** server tool: declared with just a type and a name, run by Anthropic. Compares the basic and the newer (dynamic filtering) versions. |
-| [lesson7b-code-execution.py](src/lesson7b-code-execution.py) | same | The built-in **code execution** server tool: Claude writes and runs Python in an Anthropic-hosted sandbox. |
+| [lesson7a-built-in-tools-server-side-web-search.py](src/lesson7a-built-in-tools-server-side-web-search.py) | [Built-in tools](https://academy.claude.com/courses/claude-platform-101/built-in-tools) | The built-in **web search** server tool: declared with just a type and a name, run by Anthropic. Compares the basic and the newer (dynamic filtering) versions. |
+| [lesson7b-built-in-tools-server-side-code-execution.py](src/lesson7b-built-in-tools-server-side-code-execution.py) | same | The built-in **code execution** server tool: Claude writes and runs Python in an Anthropic-hosted sandbox. |
 
 ### How the tool lessons are organized
 
@@ -74,8 +74,8 @@ python src/lesson5b-tool-use-json-results.py
 python src/lesson5c-tool-runner.py
 python src/lesson5d-tool-runner-with-metadata.py
 python src/lesson6-extended-thinking.py
-python src/lesson7a-web-search.py
-python src/lesson7b-code-execution.py
+python src/lesson7a-built-in-tools-server-side-web-search.py
+python src/lesson7b-built-in-tools-server-side-code-execution.py
 ```
 
 Each call to the API is billed to your account. Lesson 3 calls three models, including Opus, so it costs the most.
