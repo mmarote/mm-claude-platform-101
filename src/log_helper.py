@@ -1,8 +1,9 @@
 """
 Small logging helpers for the Claude Platform 101 lessons.
 
-Six functions, one per thing worth seeing:
+Seven functions, one per thing worth seeing:
 
+    log_turn(...)             a header for each round trip with Claude
     log_model_request(...)    what we send to Claude
     log_model_response(...)   what Claude sends back (text and tool requests)
     log_model_usage(...)      tokens used by a call, and how long it took
@@ -12,10 +13,11 @@ Six functions, one per thing worth seeing:
 
 Usage:
     from log_helper import (
-        log_model_request, log_model_response, log_model_usage,
+        log_turn, log_model_request, log_model_response, log_model_usage,
         log_tool_request, log_tool_response, log_answer_to_user, Stopwatch,
     )
 
+    log_turn(1)
     log_model_request(model=CHEAPEST, max_tokens=1024, messages=messages, tools=tools)
     with Stopwatch() as sw:
         response = await client.messages.create(...)
@@ -76,19 +78,26 @@ def _to_jsonable(obj):
     return str(obj)
 
 
-def _tool_names(tools) -> list[str]:
-    """Tools may be plain dicts or decorated functions; show just the names."""
-    names = []
-    for tool in tools or []:
-        if isinstance(tool, dict):
-            names.append(tool.get("name", "?"))
-        else:
-            names.append(getattr(tool, "name", None) or str(tool))
-    return names
+# def _tool_names(tools) -> list[str]:
+#     """Tools may be plain dicts or decorated functions; show just the names."""
+#     names = []
+#     for tool in tools or []:
+#         if isinstance(tool, dict):
+#             names.append(tool.get("name", "?"))
+#         else:
+#             names.append(getattr(tool, "name", None) or str(tool))
+#     return names
 
 
 def _indent(text: str, prefix: str = "    ") -> str:
     return "\n".join(prefix + line for line in text.splitlines())
+
+
+def log_turn(turn: int) -> None:
+    """Print a header that separates one round trip with Claude from the next."""
+    if not ENABLED:
+        return
+    print(f"\n{'=' * 60}\nTURN {turn}\n{'=' * 60}")
 
 
 def log_model_request(*, model, max_tokens=None, messages=None, system=None, tools=None) -> None:
@@ -102,7 +111,9 @@ def log_model_request(*, model, max_tokens=None, messages=None, system=None, too
     if system:
         print(f"   system:     {_show(system)}")
     if tools:
-        print(f"   tools:      {_tool_names(tools)}")
+        # print(f"   tools:      {_tool_names(tools)}")
+        print(f"   tools:")
+        print(_indent(_show(tools)))
     print("   messages:")
     print(_indent(_show(messages or [])))
 
