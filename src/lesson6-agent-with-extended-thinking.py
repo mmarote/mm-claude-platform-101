@@ -1,6 +1,10 @@
 """
 Claude Platform 101: Lesson 6 - Extended thinking
 
+Some tasks need more than a quick answer. Claude can work through a problem
+before responding — a feature called extended thinking. In this lesson, we'll
+look at what thinking is, how it works, and when it actually helps.
+
 https://academy.claude.com/courses/claude-platform-101/what-is-thinking
 
 WHAT'S NEW (vs lesson 5d)
