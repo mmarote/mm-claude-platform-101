@@ -88,11 +88,16 @@ def _indent(text: str, prefix: str = "    ") -> str:
     return "\n".join(prefix + line for line in text.splitlines())
 
 
-def log_turn(turn: int) -> None:
-    """Print a header that separates one round trip with Claude from the next."""
+def log_turn(turn: int, note=None) -> None:
+    """Print a header that separates one round trip with Claude from the next.
+
+    `note` is optional text added to the header line after " - ", e.g. to say
+    that something about this turn isn't shown in the log.
+    """
     if not ENABLED:
         return
-    print(f"\n{'=' * 60}\nTURN {turn}\n{'=' * 60}")
+    title = f"TURN {turn} - {note}" if note else f"TURN {turn}"
+    print(f"\n{'=' * 60}\n{title}\n{'=' * 60}")
 
 
 def log_model_request(*, model, max_tokens=None, messages=None, system=None, tools=None) -> None:
