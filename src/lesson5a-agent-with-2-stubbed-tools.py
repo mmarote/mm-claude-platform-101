@@ -1,5 +1,5 @@
 """
-Claude Platform 101: Lesson 5 - What is tool use?
+Claude Platform 101: Lesson 5a - What is tool use?
 
 Your existing workflows rely on a lot of different technologies — project
 management software, databases, files. Claude can't just check these things
@@ -23,8 +23,8 @@ import asyncio
 import anthropic
 from models import CHEAPEST
 from log_helper import (
-    log_turn, log_model_request, log_model_response, log_model_usage,
-    log_tool_request, log_tool_response, log_answer_to_user, Stopwatch,
+    log_turn, log_model_request, log_model_response,
+    log_tool_request, log_tool_response, log_answer_to_user,
 )
 
 client = anthropic.AsyncAnthropic()
@@ -94,16 +94,14 @@ async def main():
         log_turn(turn)
         log_model_request(model=model, max_tokens=max_tokens, messages=messages, tools=tools)
 
-        with Stopwatch() as sw:
-            response = await client.messages.create(
-                model=model,
-                max_tokens=max_tokens,
-                tools=tools,
-                messages=messages,
-            )
+        response = await client.messages.create(
+            model=model,
+            max_tokens=max_tokens,
+            tools=tools,
+            messages=messages,
+        )
 
         log_model_response(response)
-        log_model_usage(response, elapsed=sw.seconds)
 
         if response.stop_reason != "tool_use":
             # Claude is done ("end_turn"). Any other reason (e.g. "max_tokens")

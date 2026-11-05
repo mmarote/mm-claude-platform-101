@@ -3,7 +3,7 @@ Claude Platform 101: Lesson 5b - Structured tool results
 
 https://academy.claude.com/courses/claude-platform-101/what-is-tool-use
 
-WHAT'S NEW (vs lesson 5)
+WHAT'S NEW (vs lesson 5a)
   - Tool results are JSON instead of free text. Claude can read structured
     data more reliably, and your code can produce it from real APIs as is.
 
@@ -19,8 +19,8 @@ import json  # NEW: used to turn Python dicts into JSON strings
 import anthropic
 from models import CHEAPEST
 from log_helper import (
-    log_turn, log_model_request, log_model_response, log_model_usage,
-    log_tool_request, log_tool_response, log_answer_to_user, Stopwatch,
+    log_turn, log_model_request, log_model_response,
+    log_tool_request, log_tool_response, log_answer_to_user,
 )
 
 client = anthropic.AsyncAnthropic()
@@ -99,16 +99,14 @@ async def main():
         log_turn(turn)
         log_model_request(model=model, max_tokens=max_tokens, messages=messages, tools=tools)
 
-        with Stopwatch() as sw:
-            response = await client.messages.create(
-                model=model,
-                max_tokens=max_tokens,
-                tools=tools,
-                messages=messages,
-            )
+        response = await client.messages.create(
+            model=model,
+            max_tokens=max_tokens,
+            tools=tools,
+            messages=messages,
+        )
 
         log_model_response(response)
-        log_model_usage(response, elapsed=sw.seconds)
 
         if response.stop_reason != "tool_use":
             # Claude is done ("end_turn"). Any other reason (e.g. "max_tokens")

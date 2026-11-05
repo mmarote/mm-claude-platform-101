@@ -22,7 +22,7 @@ import asyncio
 import anthropic
 from models import CHEAPEST
 from log_helper import (
-    log_turn, log_model_request, log_model_response, log_model_usage,
+    log_turn, log_model_request, log_model_response,
     log_tool_request, log_tool_response, log_answer_to_user,
 )
 
