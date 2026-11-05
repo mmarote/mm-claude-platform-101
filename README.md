@@ -108,7 +108,9 @@ Each call to the API is billed to your account. Lesson 3 calls three models, inc
 
 ## Runner UI (optional)
 
-A small web app to run the lessons by clicking, instead of typing commands. It opens on a landing page with a card per course section. The lessons are listed on the left, grouped by section, and **Previous** / **Next** step through the course. Select a lesson to read its code, press **Run** to see the output, and use **Side by side** to show code and output together. Claude's final answers are highlighted in green boxes.
+A small web app to run the lessons by clicking, instead of typing commands. It opens on a landing page with a card per course section, each listing its lessons by name. Pick one to read its code, press **Run** to see the output, and use **Side by side** to show code and output together. **Diff vs previous** shows what changed since the previous lesson of the section. Claude's final answers appear in green boxes.
+
+A lesson with several examples (5a to 5d, 7a to 7c, 8a to 8b) is shown as one lesson, with a row to switch between its examples. Inside a lesson, the left menu shows the lessons of the current section, a ✓ marks the ones you have run, and **Previous** / **Next** step through the course. The current lesson is kept in the page URL, so a refresh keeps your place.
 
 ```bash
 pip install -r runner-ui/requirements.txt   # once, with the virtual environment active
