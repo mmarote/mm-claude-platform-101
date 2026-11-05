@@ -42,16 +42,25 @@ MAX_CHARS = 1000  # long values are cut so the console stays readable
 
 
 class Stopwatch:
-    """Time a block of code: `with Stopwatch() as sw: ...` then read `sw.seconds`."""
+    """Time a block of code: `with Stopwatch() as sw: ...` then read `sw.seconds`.
+
+    Inside the block, `sw.lap()` returns the seconds since the previous lap (or
+    since the start) and restarts the count. Useful to time each pass of a loop.
+    """
 
     seconds = 0.0
 
     def __enter__(self):
-        self._start = time.perf_counter()
+        self._start = self._lap_start = time.perf_counter()
         return self
 
     def __exit__(self, *exc_info):
         self.seconds = time.perf_counter() - self._start
+
+    def lap(self) -> float:
+        now = time.perf_counter()
+        seconds, self._lap_start = now - self._lap_start, now
+        return seconds
 
 
 def _show(value, indent=2) -> str:
@@ -100,14 +109,24 @@ def log_turn(turn: int, note=None) -> None:
     print(f"\n{'=' * 60}\n{title}\n{'=' * 60}")
 
 
-def log_model_request(*, model, max_tokens=None, messages=None, system=None, tools=None) -> None:
-    """Log the request about to be sent to Claude."""
+def log_model_request(
+    *, model, max_tokens=None, messages=None, system=None, tools=None,
+    thinking=None, output_config=None,
+) -> None:
+    """Log the request about to be sent to Claude.
+
+    `thinking` and `output_config` are only printed when given (lesson 6 on).
+    """
     if not ENABLED:
         return
     print("\n-> REQUEST to Claude")
-    print(f"   model:      {model}")
+    print(f"   model:         {model}")
     if max_tokens is not None:
-        print(f"   max_tokens: {max_tokens}")
+        print(f"   max_tokens:    {max_tokens}")
+    if thinking:
+        print(f"   thinking:      {_show(thinking, indent=None)}")
+    if output_config:
+        print(f"   output_config: {_show(output_config, indent=None)}")
     if system:
         print(f"   system:     {_show(system)}")
     if tools:
