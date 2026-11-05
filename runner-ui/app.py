@@ -31,6 +31,15 @@ WARNINGS = {
     "lesson8": "Uploads a new skill to your Anthropic account on every run.",
 }
 
+COURSE_URL = "https://academy.claude.com/courses/claude-platform-101"
+
+# Landing page text for each course section (matched on the folder name prefix).
+SECTIONS = {
+    "01": ("🚀", "What is the Claude Platform", "Make your first API call, then compare the Haiku, Sonnet and Opus models on the same prompt."),
+    "02": ("🛠️", "Teaching your agent", "Build the agent loop by hand, add tools, move to the SDK tool runner, then let Claude think before it answers."),
+    "03": ("🧩", "Extending your agent", "Use Anthropic's built-in tools (web search, code execution, memory) and teach Claude your way of working with skills."),
+}
+
 st.set_page_config(page_title="Claude Platform 101 - Runner", layout="wide")
 
 # Hide the Deploy button and the three-dots menu in the top right corner.
@@ -135,7 +144,7 @@ if not groups:
     st.stop()
 
 if "selected" not in st.session_state:
-    st.session_state.selected = str(next(iter(groups.values()))[0])
+    st.session_state.selected = None   # None = the landing page
 if "results" not in st.session_state:
     st.session_state.results = {}
 if "view" not in st.session_state:
@@ -153,11 +162,68 @@ def request_run():
     st.session_state.view = "Output"
     st.session_state.run_requested = True
 
+def open_lesson(path):
+    st.session_state.selected = str(path)
+    st.session_state.view = "Code"
+
+
+def render_home():
+    """The landing page: what this is, a link to the course, and one card per course section."""
+    st.markdown(
+        """
+        <div style="padding: 3rem 2.5rem; border-radius: 18px; color: white;
+                    background: linear-gradient(135deg, #c66240 0%, #d28267 45%, #15202b 100%);">
+          <div style="font-size: 0.95rem; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.85;">
+            Practice scripts for the course
+          </div>
+          <div style="font-size: 2.8rem; font-weight: 700; line-height: 1.15; margin: 0.4rem 0 0.8rem 0;">
+            Claude Platform 101
+          </div>
+          <div style="font-size: 1.15rem; max-width: 46rem; opacity: 0.95;">
+            Every lesson of the course as a small, runnable Python script. Read the code,
+            press Run, and watch what the API sends and what Claude answers.
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.write("")
+    st.link_button("Open the course on Anthropic Academy  ↗", COURSE_URL, type="primary")
+    st.write("")
+
+    st.subheader("Pick a section")
+    columns = st.columns(len(groups))
+    for column, (folder, scripts) in zip(columns, groups.items()):
+        icon, title, text = SECTIONS.get(folder[:2], ("📘", folder, ""))
+        with column.container(border=True):
+            st.markdown(f"<div style='font-size: 2.6rem'>{icon}</div>", unsafe_allow_html=True)
+            st.markdown(f"**{title}**")
+            st.caption(f"{len(scripts)} lesson{'s' if len(scripts) != 1 else ''}")
+            st.write(text)
+            st.button("Start here", key=f"start-{folder}", on_click=open_lesson, args=(scripts[0],),
+                      use_container_width=True)
+
+    st.subheader("How it works")
+    st.markdown(
+        "1. Choose a lesson on the left.\n"
+        "2. Read its code, then press **Run** to see the output. Claude's final answers appear in green boxes.\n"
+        "3. Turn on **Side by side** to see the code and the output together.\n"
+        "\n"
+        "Every run calls the Anthropic API with your key, so it is billed like running the script yourself."
+    )
+
+
 # ---- Left: the scripts -------------------------------------------------------
 with st.sidebar:
     st.title("Lessons")
+    if st.button("🏠 Home", use_container_width=True,
+                 type="primary" if st.session_state.selected is None else "secondary"):
+        st.session_state.selected = None
+        st.rerun()
+    # The section of the selected lesson is open; the others are closed (all closed on Home).
+    open_folder = Path(st.session_state.selected).parent.name if st.session_state.selected else None
     for folder, scripts in groups.items():
-        with st.expander(folder, expanded=False):
+        with st.expander(folder, expanded=folder == open_folder):
             for script in scripts:
                 is_selected = str(script) == st.session_state.selected
                 if st.button(script.stem, key=str(script), use_container_width=True,
@@ -166,9 +232,25 @@ with st.sidebar:
                     st.session_state.view = "Code"
                     st.rerun()
 
-# ---- Right: the selected script ---------------------------------------------
+# ---- Right: the landing page, or the selected script ------------------------
+if st.session_state.selected is None:
+    render_home()
+    st.stop()
+
 script = Path(st.session_state.selected)
 title, intro = description(script)
+
+# Breadcrumb on the left, previous / next lesson on the right.
+lessons = [path for scripts in groups.values() for path in scripts]
+position = lessons.index(script)
+section_title = SECTIONS.get(script.parent.name[:2], ("", script.parent.name, ""))[1]
+crumb, previous_col, next_col = st.columns([6, 1.3, 1.3], vertical_alignment="center")
+crumb.caption(f"{section_title}  ›  {script.stem}")
+previous_col.button("← Previous", on_click=open_lesson, args=(lessons[max(position - 1, 0)],),
+                    disabled=position == 0, use_container_width=True)
+next_col.button("Next →", on_click=open_lesson, args=(lessons[min(position + 1, len(lessons) - 1)],),
+                disabled=position == len(lessons) - 1, use_container_width=True)
+
 st.header(title or script.stem)
 st.write(intro)
 
