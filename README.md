@@ -29,6 +29,8 @@ Practice scripts I wrote while following the **Claude Platform 101** course on [
 | [lesson7a-built-in-tools-server-side-web-search.py](src/03-extending-your-agent/lesson7a-built-in-tools-server-side-web-search.py) | [Built-in tools](https://academy.claude.com/courses/claude-platform-101/built-in-tools) | The built-in **web search** server tool: declared with just a type and a name, run by Anthropic. Compares the basic and the newer (dynamic filtering) versions. |
 | [lesson7b-built-in-tools-server-side-code-execution.py](src/03-extending-your-agent/lesson7b-built-in-tools-server-side-code-execution.py) | same | The built-in **code execution** server tool: Claude writes and runs Python in an Anthropic-hosted sandbox. |
 | [lesson7c-built-in-tools-client-side-memory.py](src/03-extending-your-agent/lesson7c-built-in-tools-client-side-memory.py) | same | The built-in **memory** client tool. Two separate conversations: Claude saves a fact in the first and reads it back in the second. The SDK helper runs the commands on a temp folder, so it is safe. |
+| [lesson8a-skills.py](src/03-extending-your-agent/lesson8a-skills.py) | [Skills](https://academy.claude.com/courses/claude-platform-101/skills) | Uploads a custom skill ([status-report-text](src/03-extending-your-agent/status-report-text/SKILL.md), instructions only) and attaches it to a request, so Claude writes a status report in our team's format. Each run uploads a new copy of the skill to your account. |
+| [lesson8b-skills-with-scripts.py](src/03-extending-your-agent/lesson8b-skills-with-scripts.py) | same | **+ a script in the skill** ([status-report-with-script](src/03-extending-your-agent/status-report-with-script/SKILL.md)): Claude runs it to draw traffic lights and progress bars. Same request, only the skill folder changes. |
 
 ### How the tool lessons are organized
 
@@ -74,7 +76,7 @@ The tool-use scripts are intentionally simple:
 
 ## Running
 
-Activate the virtual environment first (`source .venv/bin/activate`). The prompt should then start with `(.venv)`. Without it, `python` isn't found on macOS and the `anthropic` package isn't installed. In VS Code, `.vscode/settings.json` selects this environment, so new terminals activate it automatically.
+Activate the virtual environment first (`source .venv/bin/activate`). The prompt should then start with `(.venv)`. Without it, `python` isn't found on macOS and the `anthropic` package isn't installed. In VS Code, `.vscode/settings.json` selects this environment, and the VS Code workspace file sets `PYTHONPATH` to `src` for terminals, so in a new VS Code terminal you can run `python src/<folder>/<script>.py` without the `PYTHONPATH=src` prefix.
 
 Run any script from the project root. `PYTHONPATH=src` lets the scripts, which live in subfolders, import the shared [models.py](src/models.py) and [log_helper.py](src/log_helper.py):
 
@@ -90,6 +92,8 @@ PYTHONPATH=src python src/02-teaching-your-agent/lesson6-extended-thinking.py
 PYTHONPATH=src python src/03-extending-your-agent/lesson7a-built-in-tools-server-side-web-search.py
 PYTHONPATH=src python src/03-extending-your-agent/lesson7b-built-in-tools-server-side-code-execution.py
 PYTHONPATH=src python src/03-extending-your-agent/lesson7c-built-in-tools-client-side-memory.py
+PYTHONPATH=src python src/03-extending-your-agent/lesson8a-skills.py
+PYTHONPATH=src python src/03-extending-your-agent/lesson8b-skills-with-scripts.py
 ```
 
 Each call to the API is billed to your account. Lesson 3 calls three models, including Opus, so it costs the most.
