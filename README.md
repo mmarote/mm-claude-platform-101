@@ -98,6 +98,17 @@ PYTHONPATH=src python src/03-extending-your-agent/lesson8b-skills-with-scripts.p
 
 Each call to the API is billed to your account. Lesson 3 calls three models, including Opus, so it costs the most.
 
+## Runner UI (optional)
+
+A small web app to run the lessons by clicking, instead of typing commands. The lessons are listed on the left, grouped by course section. Select one to read its code, press **Run** to see the output, and use **Side by side** to show code and output together. Claude's final answers are highlighted in green boxes.
+
+```bash
+pip install -r runner-ui/requirements.txt
+streamlit run runner-ui/app.py
+```
+
+It only reads the scripts in `src/` and runs them as subprocesses, with the same `PYTHONPATH=src` as above, so it needs no changes to the lessons. Every Run calls the API, so it is billed to your account like running the script yourself. The code is in [runner-ui/app.py](runner-ui/app.py).
+
 ## Dependencies
 
-Pinned in [requirements.txt](requirements.txt). The main ones are `anthropic` (the SDK) and `python-dotenv`.
+Pinned in [requirements.txt](requirements.txt). The main ones are `anthropic` (the SDK) and `python-dotenv`. The optional runner UI has its own [runner-ui/requirements.txt](runner-ui/requirements.txt).
