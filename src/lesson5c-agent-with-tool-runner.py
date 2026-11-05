@@ -4,8 +4,9 @@ Claude Platform 101: Lesson 5c - Decorated tools and the tool runner
 https://academy.claude.com/courses/claude-platform-101/what-is-tool-use
 
 WHAT'S NEW (vs lesson 5b)
-  - Tools are Python functions with the @beta_async_tool decorator. The SDK
-    builds the JSON schema for us from the type hints and the docstring.
+  - Tools are Python functions with the @beta_async_tool decorator. The
+    Anthropic SDK (the `anthropic` Python package) builds the JSON schema for
+    us from the type hints and the docstring.
   - The SDK tool runner owns the agent loop: no while loop, no stop_reason
     checks, no run_tool, no manually pushing tool results into messages.
 
@@ -22,7 +23,7 @@ import anthropic
 from anthropic import beta_async_tool  # NEW
 from models import CHEAPEST
 from log_helper import (
-    log_turn, log_model_request, log_model_response, log_model_usage,
+    log_turn, log_model_request, log_model_response,
     log_tool_request, log_tool_response, log_answer_to_user,
 )
 
@@ -32,9 +33,16 @@ client = anthropic.AsyncAnthropic()
 # =============================================================================
 # SECTION 1: TOOLS - what Claude is allowed to call
 # =============================================================================
-# NEW: a decorated function is a tool. Name = function name, description and
-# parameter docs = docstring, parameter types = type hints.
-# The tool body is also where the work happens (see SECTION 2).
+# NEW: a decorated function is a tool. We pass nothing to the decorator: the SDK
+# reads everything from the function itself and builds the same JSON schema we
+# wrote by hand in lesson 5b:
+#   name         <- the function name
+#   description  <- the docstring
+#   parameters   <- type hints (types) + the "Args:" docstring section (descriptions)
+# Claude never sees our Python code, only that schema. So the docstring is the
+# tool's documentation for the model: write it for Claude.
+# The function body is the tool's implementation: it is what runs when Claude
+# asks for this tool, so definition and implementation now live together.
 @beta_async_tool
 async def get_weather(city: str) -> str:
     """Get today's current weather for a city.
@@ -103,13 +111,25 @@ async def main():
 
     log_model_request(model=model, max_tokens=max_tokens, messages=messages, tools=tools)
 
-    # Each item the runner yields is one response from Claude (one turn).
+    # The turns still happen, but the runner makes the calls to Claude itself
+    # (and runs the tools in between). So we only log the first request, and
+    # each turn's response as the runner yields it. With tools that is two turns:
+    # the tool request, then the answer.
+    note = "request not shown: the tool runner sent it, with the tool results"
     turn = 0
-    async for message in runner:
+
+    # =========================================================================
+    # CRITICAL LINE: this loop is what runs the agent. Do not remove it.
+    # Creating the runner above sends NOTHING to Claude. The runner only starts
+    # working when we iterate over it. Each pass of this loop makes one call to
+    # Claude, runs the tools it asks for, and hands us the response.
+    # Without this line there are no API calls, no tool runs and no answer.
+    # (The log_* lines inside the loop are optional. The loop itself is not.)
+    # =========================================================================
+    async for message in runner:    # <-- CRITICAL LINE
         turn += 1
-        log_turn(turn)
+        log_turn(turn, note=note if turn > 1 else None)
         log_model_response(message)
-        log_model_usage(message)
 
     log_answer_to_user(message)  # the last message is Claude's final answer
 
