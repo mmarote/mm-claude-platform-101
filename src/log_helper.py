@@ -122,7 +122,11 @@ def log_model_response(response) -> None:
         if block.type == "text":
             print(f"   text:        {_show(block.text)}")
         elif block.type == "tool_use":
-            print(f"   tool_use:    {block.name}({_show(block.input, indent=None)})  id={block.id}")
+            # Claude doesn't run the tool. It returns the tool name and the input as separate fields.
+            print("   tool_use:")
+            print(f"      name:  {block.name}")
+            print(f"      input: {_show(block.input, indent=None)}")
+            print(f"      id:    {block.id}")
         else:
             print(f"   {block.type}:")
             print(_indent(_show(block)))
