@@ -58,6 +58,8 @@ The tool-use scripts are intentionally simple:
 
 ## Running
 
+Activate the virtual environment first (`source .venv/bin/activate`). The prompt should then start with `(.venv)`. Without it, `python` isn't found on macOS and the `anthropic` package isn't installed. In VS Code, `.vscode/settings.json` selects this environment, so new terminals activate it automatically.
+
 Run any script from the project root:
 
 ```bash
