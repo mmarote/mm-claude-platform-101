@@ -1,9 +1,10 @@
 """
 Small logging helpers for the Claude Platform 101 lessons.
 
-Seven functions, one per thing worth seeing:
+Eight functions, one per thing worth seeing:
 
-    log_turn(...)             a header for each round trip with Claude
+    log_banner(...)           a title between two lines, to separate parts of the log
+    log_turn(...)             a banner for each round trip with Claude
     log_model_request(...)    what we send to Claude
     log_model_response(...)   what Claude sends back (text and tool requests)
     log_model_usage(...)      tokens used by a call, and how long it took
@@ -13,7 +14,7 @@ Seven functions, one per thing worth seeing:
 
 Usage:
     from log_helper import (
-        log_turn, log_model_request, log_model_response, log_model_usage,
+        log_banner, log_turn, log_model_request, log_model_response, log_model_usage,
         log_tool_request, log_tool_response, log_answer_to_user, Stopwatch,
     )
 
@@ -97,16 +98,20 @@ def _indent(text: str, prefix: str = "    ") -> str:
     return "\n".join(prefix + line for line in text.splitlines())
 
 
+def log_banner(title: str) -> None:
+    """Print a title between two lines of "=", to separate one part of the log from the next."""
+    if not ENABLED:
+        return
+    print(f"\n{'=' * 60}\n{title}\n{'=' * 60}")
+
+
 def log_turn(turn: int, note=None) -> None:
-    """Print a header that separates one round trip with Claude from the next.
+    """Print a banner that separates one round trip with Claude from the next.
 
     `note` is optional text added to the header line after " - ", e.g. to say
     that something about this turn isn't shown in the log.
     """
-    if not ENABLED:
-        return
-    title = f"TURN {turn} - {note}" if note else f"TURN {turn}"
-    print(f"\n{'=' * 60}\n{title}\n{'=' * 60}")
+    log_banner(f"TURN {turn} - {note}" if note else f"TURN {turn}")
 
 
 def log_model_request(
@@ -145,9 +150,10 @@ def log_model_response(response) -> None:
     for block in response.content:
         if block.type == "text":
             print(f"   text:        {_show(block.text)}")
-        elif block.type == "tool_use":
+        elif block.type in ("tool_use", "server_tool_use"):
             # Claude doesn't run the tool. It returns the tool name and the input as separate fields.
-            print("   tool_use:")
+            # (server_tool_use = a built-in tool that Anthropic runs for us, e.g. web search.)
+            print(f"   {block.type}:")
             print(f"      name:  {block.name}")
             print(f"      input: {_show(block.input, indent=None)}")
             print(f"      id:    {block.id}")
