@@ -6,13 +6,13 @@ Practice scripts I wrote while following the **Claude Platform 101** course on [
 
 | Script | Lesson | What it demonstrates |
 | --- | --- | --- |
-| [lesson2-model-call.py](src/lesson2-model-call.py) | [Your first API call](https://academy.claude.com/courses/claude-platform-101/your-first-api-call) | Sends a buggy JavaScript snippet to Claude with a system prompt and prints the code review. |
-| [lesson3-model-comparison.py](src/lesson3-model-comparison.py) | [Choosing the right model](https://academy.claude.com/courses/claude-platform-101/choosing-the-right-model) | Runs the same prompt against Haiku, Sonnet and Opus and prints each response with its token usage, to compare quality and cost. |
-| [lesson4-agent-with-1-stubbed-tool.py](src/lesson4-agent-with-1-stubbed-tool.py) | [The agent loop explained](https://academy.claude.com/courses/claude-platform-101/the-agent-loop-explained) | **Baseline.** A hand-written agent loop with one stubbed tool (`get_weather`), defined as a JSON schema, that switches on `stop_reason`. |
-| [lesson5a-agent-with-2-stubbed-tools.py](src/lesson5a-agent-with-2-stubbed-tools.py) | [What is tool use?](https://academy.claude.com/courses/claude-platform-101/what-is-tool-use) | **+ a second tool** (`get_forecast`). Claude now chooses which tools to call. |
-| [lesson5b-agent-with-json-tool-results.py](src/lesson5b-agent-with-json-tool-results.py) | same | **+ JSON tool results** instead of plain text. |
-| [lesson5c-agent-with-tool-runner.py](src/lesson5c-agent-with-tool-runner.py) | same | **+ `@beta_async_tool` decorators and the SDK tool runner.** No JSON schemas, no `run_tool`, no while loop. |
-| [lesson5d-agent-with-tool-metadata.py](src/lesson5d-agent-with-tool-metadata.py) | same | **+ explicit tool name/description and `Annotated[..., Field]`** parameter metadata. |
+| [lesson2-first-api-call.py](src/lesson2-first-api-call.py) | [Your first API call](https://academy.claude.com/courses/claude-platform-101/your-first-api-call) | Sends a buggy JavaScript snippet to Claude with a system prompt and prints the code review. |
+| [lesson3-choosing-the-right-model.py](src/lesson3-choosing-the-right-model.py) | [Choosing the right model](https://academy.claude.com/courses/claude-platform-101/choosing-the-right-model) | Runs the same prompt against Haiku, Sonnet and Opus and prints each response with its token usage, to compare quality and cost. |
+| [lesson4-the-agent-loop.py](src/lesson4-the-agent-loop.py) | [The agent loop explained](https://academy.claude.com/courses/claude-platform-101/the-agent-loop-explained) | **Baseline.** A hand-written agent loop with one stubbed tool (`get_weather`), defined as a JSON schema, that switches on `stop_reason`. |
+| [lesson5a-tool-use.py](src/lesson5a-tool-use.py) | [What is tool use?](https://academy.claude.com/courses/claude-platform-101/what-is-tool-use) | **+ a second tool** (`get_forecast`). Claude now chooses which tools to call. |
+| [lesson5b-tool-use-json-results.py](src/lesson5b-tool-use-json-results.py) | same | **+ JSON tool results** instead of plain text. |
+| [lesson5c-tool-runner.py](src/lesson5c-tool-runner.py) | same | **+ `@beta_async_tool` decorators and the SDK tool runner.** No JSON schemas, no `run_tool`, no while loop. |
+| [lesson5d-tool-runner-with-metadata.py](src/lesson5d-tool-runner-with-metadata.py) | same | **+ explicit tool name/description and `Annotated[..., Field]`** parameter metadata. |
 
 ### How the tool lessons are organized
 
@@ -63,13 +63,13 @@ Activate the virtual environment first (`source .venv/bin/activate`). The prompt
 Run any script from the project root:
 
 ```bash
-python src/lesson2-model-call.py
-python src/lesson3-model-comparison.py
-python src/lesson4-agent-with-1-stubbed-tool.py
-python src/lesson5a-agent-with-2-stubbed-tools.py
-python src/lesson5b-agent-with-json-tool-results.py
-python src/lesson5c-agent-with-tool-runner.py
-python src/lesson5d-agent-with-tool-metadata.py
+python src/lesson2-first-api-call.py
+python src/lesson3-choosing-the-right-model.py
+python src/lesson4-the-agent-loop.py
+python src/lesson5a-tool-use.py
+python src/lesson5b-tool-use-json-results.py
+python src/lesson5c-tool-runner.py
+python src/lesson5d-tool-runner-with-metadata.py
 ```
 
 Each call to the API is billed to your account. Lesson 3 calls three models, including Opus, so it costs the most.
