@@ -7,7 +7,9 @@ way you would in a terminal. It never changes them.
 """
 
 import ast
+import difflib
 import os
+import re
 import subprocess
 import sys
 import time
@@ -17,7 +19,7 @@ import streamlit as st
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src"
-# The virtual environment's Python: .venv/bin/python on macOS and Linux, .venv\\Scripts\\python.exe on Windows.
+# The virtual environment's Python: .venv/bin/python on macOS and Linux, .venv\Scripts\python.exe on Windows.
 VENV_PYTHON = next(
     (p for p in (ROOT / ".venv" / "bin" / "python", ROOT / ".venv" / "Scripts" / "python.exe") if p.exists()),
     None,
@@ -63,12 +65,63 @@ def discover():
     return groups
 
 
-def description(path):
-    """The title and first paragraph of the script's docstring."""
-    doc = ast.get_docstring(ast.parse(path.read_text(encoding="utf-8"))) or ""
+@st.cache_data
+def _parse_docstring(path_str, modified):
+    """The title and first paragraph of a script's docstring (cached until the file changes)."""
+    doc = ast.get_docstring(ast.parse(Path(path_str).read_text(encoding="utf-8"))) or ""
     title, _, rest = doc.partition("\n")
     first = rest.strip().split("\n\n")[0].replace("\n", " ")
     return title, first
+
+
+def description(path):
+    return _parse_docstring(str(path), path.stat().st_mtime)
+
+
+def lesson_label(path):
+    """A friendly name for a lesson, e.g. '5b · Structured tool results', with a check mark once it has run."""
+    title, _ = description(path)
+    match = re.search(r"Lesson (\w+) - (.*)", title)
+    label = f"{match.group(1)} · {match.group(2)}" if match else path.stem
+    return ("✓ " if str(path) in st.session_state.get("results", {}) else "") + label
+
+
+# Lessons that come in several examples (5a-5d, 7a-7c, 8a-8b) are shown as ONE lesson with a row of examples.
+LESSON_NAMES = {"5": "Tool use", "7": "Built-in tools", "8": "Skills"}
+
+
+def lesson_parts(path):
+    """(number, letter, name) from the docstring title, e.g. ('5', 'b', 'Structured tool results')."""
+    title, _ = description(path)
+    match = re.search(r"Lesson (\d+)(\w*) - (.*)", title)
+    return (match.group(1), match.group(2), match.group(3)) if match else (path.stem, "", path.stem)
+
+
+def has_run(path):
+    return str(path) in st.session_state.get("results", {})
+
+
+def variant_label(path):
+    """Label of one example inside a lesson, e.g. 'b · Structured tool results'."""
+    _, letter, name = lesson_parts(path)
+    return ("✓ " if has_run(path) else "") + (f"{letter} · {name}" if letter else name)
+
+
+def lesson_groups(scripts):
+    """{lesson number: [example paths]}, in order, so 5a-5d become one entry '5'."""
+    groups_by_number = {}
+    for path in scripts:
+        groups_by_number.setdefault(lesson_parts(path)[0], []).append(path)
+    return groups_by_number
+
+
+def group_label(number, paths, count=True):
+    """Label of a whole lesson, e.g. '5 · Tool use  (4 examples)'. A lesson with one script is just that script."""
+    if len(paths) == 1:
+        return lesson_label(paths[0])
+    name = LESSON_NAMES.get(number, lesson_parts(paths[0])[2])
+    suffix = f"  ({len(paths)} examples)" if count else ""
+    return ("✓ " if any(has_run(path) for path in paths) else "") + f"{number} · {name}{suffix}"
 
 
 ANSWER_MARKER = "=== ANSWER TO USER ==="
@@ -144,7 +197,10 @@ if not groups:
     st.stop()
 
 if "selected" not in st.session_state:
-    st.session_state.selected = None   # None = the landing page
+    # None = the landing page. A ?lesson=<name> in the URL (kept on refresh) opens that lesson.
+    wanted = st.query_params.get("lesson")
+    match = next((p for scripts in groups.values() for p in scripts if p.stem == wanted), None)
+    st.session_state.selected = str(match) if match else None
 if "results" not in st.session_state:
     st.session_state.results = {}
 if "view" not in st.session_state:
@@ -167,70 +223,90 @@ def open_lesson(path):
     st.session_state.view = "Code"
 
 
+def go_home():
+    st.session_state.selected = None
+
+
+# Keep the lesson in the URL, so a browser refresh does not send you back to the landing page.
+if st.session_state.selected:
+    st.query_params["lesson"] = Path(st.session_state.selected).stem
+elif "lesson" in st.query_params:
+    del st.query_params["lesson"]
+
+
 def render_home():
     """The landing page: what this is, a link to the course, and one card per course section."""
-    st.markdown(
+    # A compact banner (80%) next to the course link (20%), both the same height.
+    banner, course = st.columns([4, 1])
+    banner.markdown(
         """
-        <div style="padding: 3rem 2.5rem; border-radius: 18px; color: white;
-                    background: linear-gradient(135deg, #c66240 0%, #d28267 45%, #15202b 100%);">
-          <div style="font-size: 0.95rem; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.85;">
+        <div style="height: 9rem; box-sizing: border-box; padding: 1.2rem 1.6rem; border-radius: 14px; color: white;
+                    display: flex; flex-direction: column; justify-content: center;
+                    background: linear-gradient(135deg, #1f2937 0%, #4b5563 100%);">
+          <div style="font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.85;">
             Practice scripts for the course
           </div>
-          <div style="font-size: 2.8rem; font-weight: 700; line-height: 1.15; margin: 0.4rem 0 0.8rem 0;">
+          <div style="font-size: 1.9rem; font-weight: 700; line-height: 1.15; margin: 0.2rem 0 0.4rem 0;">
             Claude Platform 101
           </div>
-          <div style="font-size: 1.15rem; max-width: 46rem; opacity: 0.95;">
-            Every lesson of the course as a small, runnable Python script. Read the code,
-            press Run, and watch what the API sends and what Claude answers.
+          <div style="font-size: 0.95rem; opacity: 0.95;">
+            Every lesson as a small, runnable Python script. Read the code, press Run, and watch
+            what the API sends and what Claude answers.
           </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
-    st.write("")
-    st.link_button("Open the course on Anthropic Academy  ↗", COURSE_URL, type="primary")
+    course.markdown(
+        f"""
+        <a href="{COURSE_URL}" target="_blank" style="text-decoration: none;">
+          <div style="height: 9rem; box-sizing: border-box; padding: 1rem; border-radius: 14px; color: white;
+                      display: flex; flex-direction: column; align-items: center; justify-content: center;
+                      text-align: center; background: #a8484f;">
+            <div style="font-size: 1.6rem; line-height: 1;">↗</div>
+            <div style="font-weight: 600; margin-top: 0.4rem;">Open the course</div>
+            <div style="font-size: 0.75rem; opacity: 0.75;">Anthropic Academy</div>
+          </div>
+        </a>
+        """,
+        unsafe_allow_html=True,
+    )
     st.write("")
 
-    st.subheader("Pick a section")
+    st.subheader("Pick a lesson")
     columns = st.columns(len(groups))
     for column, (folder, scripts) in zip(columns, groups.items()):
         icon, title, text = SECTIONS.get(folder[:2], ("📘", folder, ""))
         with column.container(border=True):
             st.markdown(f"<div style='font-size: 2.6rem'>{icon}</div>", unsafe_allow_html=True)
             st.markdown(f"**{title}**")
-            st.caption(f"{len(scripts)} lesson{'s' if len(scripts) != 1 else ''}")
+            lessons_here = lesson_groups(scripts)
+            st.caption(f"{len(lessons_here)} lesson{'s' if len(lessons_here) != 1 else ''}")
             st.write(text)
-            st.button("Start here", key=f"start-{folder}", on_click=open_lesson, args=(scripts[0],),
-                      use_container_width=True)
+            for number, paths in lessons_here.items():
+                st.button(group_label(number, paths), key=f"home-{folder}-{number}",
+                          on_click=open_lesson, args=(paths[0],), use_container_width=True)
 
-    st.subheader("How it works")
+
+
+# ---- Left: the lessons of the current section (hidden on the landing page) -----
+if st.session_state.selected is None:
     st.markdown(
-        "1. Choose a lesson on the left.\n"
-        "2. Read its code, then press **Run** to see the output. Claude's final answers appear in green boxes.\n"
-        "3. Turn on **Side by side** to see the code and the output together.\n"
-        "\n"
-        "Every run calls the Anthropic API with your key, so it is billed like running the script yourself."
+        """
+        <style>
+        [data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] { display: none; }
+        </style>
+        """,
+        unsafe_allow_html=True,
     )
-
-
-# ---- Left: the scripts -------------------------------------------------------
-with st.sidebar:
-    st.title("Lessons")
-    if st.button("🏠 Home", use_container_width=True,
-                 type="primary" if st.session_state.selected is None else "secondary"):
-        st.session_state.selected = None
-        st.rerun()
-    # The section of the selected lesson is open; the others are closed (all closed on Home).
-    open_folder = Path(st.session_state.selected).parent.name if st.session_state.selected else None
-    for folder, scripts in groups.items():
-        with st.expander(folder, expanded=folder == open_folder):
-            for script in scripts:
-                is_selected = str(script) == st.session_state.selected
-                if st.button(script.stem, key=str(script), use_container_width=True,
-                             type="primary" if is_selected else "secondary"):
-                    st.session_state.selected = str(script)
-                    st.session_state.view = "Code"
-                    st.rerun()
+else:
+    current = Path(st.session_state.selected)
+    with st.sidebar:
+        st.button("← All sections", on_click=go_home, use_container_width=True)
+        st.subheader(SECTIONS.get(current.parent.name[:2], ("", current.parent.name, ""))[1])
+        for number, paths in lesson_groups(groups[current.parent.name]).items():
+            st.button(group_label(number, paths), key=f"nav-{number}", on_click=open_lesson, args=(paths[0],),
+                      type="primary" if current in paths else "secondary", use_container_width=True)
 
 # ---- Right: the landing page, or the selected script ------------------------
 if st.session_state.selected is None:
@@ -245,13 +321,21 @@ lessons = [path for scripts in groups.values() for path in scripts]
 position = lessons.index(script)
 section_title = SECTIONS.get(script.parent.name[:2], ("", script.parent.name, ""))[1]
 crumb, previous_col, next_col = st.columns([6, 1.3, 1.3], vertical_alignment="center")
-crumb.caption(f"{section_title}  ›  {script.stem}")
+lesson_number = lesson_parts(script)[0]
+examples = lesson_groups(groups[script.parent.name])[lesson_number]
+crumb.caption(f"{section_title}  ›  {group_label(lesson_number, examples, count=False)}")
 previous_col.button("← Previous", on_click=open_lesson, args=(lessons[max(position - 1, 0)],),
                     disabled=position == 0, use_container_width=True)
 next_col.button("Next →", on_click=open_lesson, args=(lessons[min(position + 1, len(lessons) - 1)],),
                 disabled=position == len(lessons) - 1, use_container_width=True)
 
-st.header(title or script.stem)
+if len(examples) > 1:
+    # One lesson, several examples: switch between them here.
+    for column, example in zip(st.columns(len(examples)), examples):
+        column.button(variant_label(example), key=f"example-{example}", on_click=open_lesson, args=(example,),
+                      type="primary" if example == script else "secondary", use_container_width=True)
+
+st.header(title.removeprefix("Claude Platform 101: ") if title else script.stem)
 st.write(intro)
 
 warning = next((text for prefix, text in WARNINGS.items() if script.name.startswith(prefix)), None)
@@ -262,7 +346,10 @@ has_result = str(script) in st.session_state.results
 side_by_side = st.session_state.get("side_by_side", False)
 showing_output = st.session_state.view == "Output"
 
-col_run, col_clear, col_view, col_side, _ = st.columns([1, 1, 2, 2, 3])
+siblings = groups[script.parent.name]
+previous_in_section = siblings[siblings.index(script) - 1] if siblings.index(script) > 0 else None
+
+col_run, col_clear, col_view, col_side, col_diff, _ = st.columns([1, 1, 2, 2, 2.6, 1.4])
 col_run.button("Run", type="primary", on_click=request_run)
 if col_clear.button("Clear"):
     st.session_state.results.pop(str(script), None)
@@ -274,6 +361,24 @@ col_view.button(
     disabled=side_by_side or (not showing_output and not has_result),
 )
 col_side.toggle("Side by side", key="side_by_side")
+col_diff.toggle(
+    "Diff vs previous", key="show_diff",
+    disabled=previous_in_section is None or (showing_output and not side_by_side),
+)
+
+
+def render_code(height="content"):
+    """The lesson's code, or what changed since the previous lesson of the section."""
+    if st.session_state.get("show_diff") and previous_in_section:
+        diff = "".join(difflib.unified_diff(
+            previous_in_section.read_text(encoding="utf-8").splitlines(keepends=True),
+            script.read_text(encoding="utf-8").splitlines(keepends=True),
+            fromfile=previous_in_section.name, tofile=script.name, n=3,
+        ))
+        st.caption(f"Changes from {lesson_label(previous_in_section)}")
+        st.code(diff or "(no differences)", language="diff", height=height)
+    else:
+        st.code(script.read_text(encoding="utf-8"), language="python", line_numbers=True, height=height)
 
 
 def render_output(container):
@@ -298,9 +403,9 @@ if side_by_side:
     # Both panes scroll on their own, so a long lesson does not push the output off screen.
     left, right = st.columns(2)
     with left:
-        st.code(script.read_text(encoding="utf-8"), language="python", line_numbers=True, height=700)
+        render_code(height=700)
     render_output(right.container(height=700))
 elif showing_output:
     render_output(st.container())
 else:
-    st.code(script.read_text(encoding="utf-8"), language="python", line_numbers=True)
+    render_code()
