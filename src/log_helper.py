@@ -72,21 +72,16 @@ def _show(value, indent=2) -> str:
 
 
 def _to_jsonable(obj):
-    """json.dumps fallback: SDK response objects are pydantic models."""
+    """json.dumps fallback for SDK objects.
+
+    Response objects are pydantic models; decorated tools (@beta_async_tool)
+    know how to describe themselves as a tool schema with to_dict().
+    """
     if hasattr(obj, "model_dump"):
         return obj.model_dump(exclude_none=True)
+    if hasattr(obj, "to_dict"):
+        return obj.to_dict()
     return str(obj)
-
-
-# def _tool_names(tools) -> list[str]:
-#     """Tools may be plain dicts or decorated functions; show just the names."""
-#     names = []
-#     for tool in tools or []:
-#         if isinstance(tool, dict):
-#             names.append(tool.get("name", "?"))
-#         else:
-#             names.append(getattr(tool, "name", None) or str(tool))
-#     return names
 
 
 def _indent(text: str, prefix: str = "    ") -> str:
@@ -111,8 +106,7 @@ def log_model_request(*, model, max_tokens=None, messages=None, system=None, too
     if system:
         print(f"   system:     {_show(system)}")
     if tools:
-        # print(f"   tools:      {_tool_names(tools)}")
-        print(f"   tools:")
+        print("   tools:")
         print(_indent(_show(tools)))
     print("   messages:")
     print(_indent(_show(messages or [])))
