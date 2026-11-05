@@ -116,11 +116,12 @@ def log_turn(turn: int, note=None) -> None:
 
 def log_model_request(
     *, model, max_tokens=None, messages=None, system=None, tools=None,
-    thinking=None, output_config=None,
+    thinking=None, output_config=None, container=None,
 ) -> None:
     """Log the request about to be sent to Claude.
 
-    `thinking` and `output_config` are only printed when given (lesson 6 on).
+    `thinking` and `output_config` are only printed when given (lesson 6 on),
+    and so is `container` (lesson 8, skills).
     """
     if not ENABLED:
         return
@@ -132,6 +133,8 @@ def log_model_request(
         print(f"   thinking:      {_show(thinking, indent=None)}")
     if output_config:
         print(f"   output_config: {_show(output_config, indent=None)}")
+    if container:
+        print(f"   container:     {_show(container, indent=None)}")
     if system:
         print(f"   system:     {_show(system)}")
     if tools:
