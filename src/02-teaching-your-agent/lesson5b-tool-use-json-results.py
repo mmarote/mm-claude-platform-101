@@ -3,6 +3,9 @@ Claude Platform 101: Lesson 5b - Structured tool results
 
 https://academy.claude.com/courses/claude-platform-101/what-is-tool-use
 
+NOTE: These are custom tools, not MCP. We write and maintain the schemas and
+the implementation. With MCP, the service provider publishes the tools for you.
+
 WHAT'S NEW (vs lesson 5a)
   - Tool results are JSON instead of free text. Claude can read structured
     data more reliably, and your code can produce it from real APIs as is.

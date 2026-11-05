@@ -8,6 +8,9 @@ talk about agentic workflows.
 
 https://academy.claude.com/courses/claude-platform-101/the-agent-loop-explained
 
+NOTE: These are custom tools, not MCP. We write and maintain the schemas and
+the implementation. With MCP, the service provider publishes the tools for you.
+
 THIS LESSON
   - 1 tool (get_weather), defined as a JSON schema
   - Tool results are plain text

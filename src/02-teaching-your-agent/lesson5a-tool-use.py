@@ -8,6 +8,9 @@ and actions.
 
 https://academy.claude.com/courses/claude-platform-101/what-is-tool-use
 
+NOTE: These are custom tools, not MCP. We write and maintain the schemas and
+the implementation. With MCP, the service provider publishes the tools for you.
+
 WHAT'S NEW (vs lesson 4)
   - A second tool (get_forecast). Claude now chooses which tool(s) to call.
   - A question that needs both tools.
