@@ -28,7 +28,7 @@ a limited-network environment.
 
 import asyncio
 import anthropic
-from models import CHEAPEST
+from models import BALANCED, CHEAPEST
 
 
 client = anthropic.AsyncAnthropic()
@@ -43,9 +43,14 @@ async def main():
     # file read/write, search). `default_config` turns them on.
     agent = await client.beta.agents.create(
         name="Line Counter",
-        model=CHEAPEST,
-        system="You are a helpful agent that completes small file tasks. Explain your plan and your actions.",
-        tools=[{"type": "agent_toolset_20260401", "default_config": {"enabled": True}}],
+        model=BALANCED,
+        system="You are a helpful agent that completes small file tasks. You explain all the steps you take.",
+        tools=[
+            {
+                "type": "agent_toolset_20260401",
+                "default_config": {"enabled": True}
+            }
+        ],
     )
     print(f"Agent created: {agent.id}")
 
@@ -56,7 +61,10 @@ async def main():
     # no outside hosts unless you list them.
     environment = await client.beta.environments.create(
         name="line-counter-env",
-        config={"type": "cloud", "networking": {"type": "limited"}},
+        config={
+            "type": "cloud",
+            "networking": {"type": "limited"}
+        },
     )
     print(f"Environment created: {environment.id}")
 
@@ -81,7 +89,13 @@ async def main():
             session_id=session.id,
             events=[{
                 "type": "user.message",
-                "content": [{"type": "text", "text": "Make a temp file, count its lines, report back."}],
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Create a file in the temp directory, "
+                                "count its lines, and report back.",
+                    }
+                ],
             }],
         )
 

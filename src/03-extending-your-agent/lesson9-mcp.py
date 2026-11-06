@@ -1,5 +1,5 @@
 """
-Claude Platform 101: Lesson 9 - MCP (Model Context Protocol)
+Claude Platform 101: Lesson 9 - MCP
 
 Custom tools are for your own stuff. MCP is for everyone else's stuff: the
 service provider publishes and maintains an MCP server, and Claude discovers
