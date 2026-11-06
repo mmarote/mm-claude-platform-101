@@ -45,7 +45,18 @@ SECTIONS = {
     "02": ("🛠️", "Teaching your agent", "Build the agent loop by hand, add tools, move to the SDK tool runner, then let Claude think before it answers."),
     "03": ("🧩", "Extending your agent", "Use Anthropic's built-in tools (web search, code execution, memory) and teach Claude your way of working with skills."),
     "04": ("🤖", "Managed agents", "Let Anthropic run the agent loop and sandbox for you, and follow the agent's events as it works."),
+    "05": ("💻", "Building with Claude Code", "Build with the Claude Platform from Claude Code. The course example is in TypeScript."),
 }
+
+# Course lessons with no Python script, shown grayed out on the landing page:
+# (section prefix, lesson number, lesson name, course link slug).
+GAP_LESSONS = [
+    ("01", "1", "The Claude Platform", "what-is-the-claude-platform"),
+    ("03", "10", "Context management", "context-management"),
+    ("04", "11", "Managed agents", "what-are-managed-agents"),
+    ("05", "13", "Claude Code", "building-with-claude-code"),
+]
+GAP_NOTE = "These lessons are explained on the course page and have no practical example in this project."
 
 st.set_page_config(page_title="Claude Platform 101 - Runner", layout="wide")
 
@@ -321,9 +332,17 @@ def render_home():
     st.subheader("Pick a lesson", anchor=False)
     # Larger text on the cards and their lesson buttons, to make them easier to read.
     st.markdown("<style>[data-testid='stButton'] button p { font-size: 1.1rem; }</style>", unsafe_allow_html=True)
-    columns = st.columns(len(groups))
-    for column, (folder, scripts) in zip(columns, groups.items()):
-        icon, title, text = SECTIONS.get(folder[:2], ("📘", folder, ""))
+    # One card per course section, in order: its scripted lessons plus the course lessons without a script.
+    cards = []
+    for prefix, (icon, title, text) in SECTIONS.items():
+        folder = next((name for name in groups if name[:2] == prefix), None)
+        lessons_here = lesson_groups(groups[folder]) if folder else {}
+        gaps = [gap for gap in GAP_LESSONS if gap[0] == prefix]
+        if lessons_here or gaps:
+            cards.append((prefix, folder, icon, title, text, lessons_here, gaps))
+
+    columns = st.columns(len(cards))
+    for column, (prefix, folder, icon, title, text, lessons_here, gaps) in zip(columns, cards):
         with column.container(border=True):
             st.markdown(
                 f"<div style='display: flex; align-items: center; justify-content: center; gap: 0.8rem;'>"
@@ -331,16 +350,26 @@ def render_home():
                 f"<div style='font-weight: 600; font-size: 1.4rem;'>{title}</div></div>",
                 unsafe_allow_html=True,
             )
-            lessons_here = lesson_groups(scripts)
-            count = f"{len(lessons_here)} lesson{'s' if len(lessons_here) != 1 else ''}"
+            count_total = len(lessons_here) + len(gaps)
+            count = f"{count_total} lesson{'s' if count_total != 1 else ''}"
             st.markdown(f"<div style='text-align: center; opacity: 0.6; font-size: 1rem; margin-bottom: 1.4rem;'>{count}</div>",
                         unsafe_allow_html=True)
             st.markdown(f"<div style='text-align: center; font-size: 1.15rem; line-height: 1.5; margin-bottom: 2rem;'>{text}</div>", unsafe_allow_html=True)
-            for number, paths in lessons_here.items():
-                # A blank line makes the badge a second paragraph, so it sits on its own line in the button.
-                label = group_label(number, paths) + (f"\n\n{BETA_BADGE.strip()}" if number in BETA_LESSONS else "")
-                st.button(label, key=f"home-{folder}-{number}",
-                          on_click=open_lesson, args=(paths[0],), use_container_width=True)
+            entries = [(int(number), "script", number, paths) for number, paths in lessons_here.items()]
+            entries += [(int(number), "gap", number, (name, COURSE_URL + "/" + slug)) for _, number, name, slug in gaps]
+            for _, kind, number, payload in sorted(entries, key=lambda entry: entry[0]):
+                if kind == "script":
+                    paths = payload
+                    # A blank line makes the badge a second paragraph, so it sits on its own line in the button.
+                    label = group_label(number, paths) + (f"\n\n{BETA_BADGE.strip()}" if number in BETA_LESSONS else "")
+                    st.button(label, key=f"home-{folder}-{number}",
+                              on_click=open_lesson, args=(paths[0],), use_container_width=True)
+                else:
+                    name, _ = payload
+                    st.button(f"{number} · {name} (*)", key=f"home-gap-{prefix}-{number}", disabled=True,
+                              use_container_width=True)
+
+    st.caption(f"(*) {GAP_NOTE}")
 
 
 
