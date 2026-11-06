@@ -369,14 +369,25 @@ if st.session_state.selected is None:
 script = Path(st.session_state.selected)
 title, intro = description(script)
 
-# Breadcrumb on the left, previous / next lesson on the right.
+# Breadcrumb on the left, "Open in" (course link) in the middle, previous / next lesson on the right.
+# The weights make the middle column sit at the centre of the row.
 lessons = [path for scripts in groups.values() for path in scripts]
 position = lessons.index(script)
 section_title = SECTIONS.get(script.parent.name[:2], ("", script.parent.name, ""))[1]
-crumb, previous_col, next_col = st.columns([6, 1.3, 1.3], vertical_alignment="center")
+crumb, open_col, previous_col, next_col = st.columns([2.5, 2, 1.25, 1.25], vertical_alignment="center")
 lesson_number = lesson_parts(script)[0]
 examples = lesson_groups(groups[script.parent.name])[lesson_number]
 crumb.caption(f"{section_title}  ›  {group_label(lesson_number, examples, count=False)}")
+if course_url := course_lesson_url(script):
+    # Styled like a button, so it sits level with Previous / Next. The logo is a small inline image.
+    open_col.markdown(
+        f"<div style='text-align: center;'>"
+        f"<a href='{course_url}' target='_blank' style='display: inline-block; padding: 0.4rem 1rem; "
+        f"border: 1px solid rgba(49, 51, 63, 0.2); border-radius: 0.5rem; text-decoration: none; color: inherit;'>"
+        f"Open in <img src='data:image/png;base64,{LOGO_BASE64}' alt='Claude' "
+        f"style='height: 1.1em; width: auto; vertical-align: -0.15em;' /></a></div>",
+        unsafe_allow_html=True,
+    )
 previous_col.button("← Previous", on_click=open_lesson, args=(lessons[max(position - 1, 0)],),
                     disabled=position == 0, use_container_width=True)
 next_col.button("Next →", on_click=open_lesson, args=(lessons[min(position + 1, len(lessons) - 1)],),
@@ -391,8 +402,6 @@ if len(examples) > 1:
 header = title.removeprefix("Claude Platform 101: ") if title else script.stem
 st.header(header + (BETA_BADGE if lesson_number in BETA_LESSONS else ""), anchor=False)
 st.write(intro)
-if course_url := course_lesson_url(script):
-    st.link_button("Open this lesson in the course ↗", course_url)
 
 warning = next((text for prefix, text in WARNINGS.items() if script.name.startswith(prefix)), None)
 if warning:
