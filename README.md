@@ -85,20 +85,14 @@ Then run any script with `python src/<folder>/<script>.py`. Each API call is bil
 
 ## Runner UI (optional)
 
-A small web app to run the lessons by clicking, instead of typing commands. It opens on a landing page with a card per course section, each listing its lessons by name. Pick one to read its code, press **Run** to see the output, and use **Side by side** to show code and output together. **Diff vs previous** shows what changed since the previous lesson of the section. Claude's final answers appear in green boxes.
-
-A lesson with several examples (5a to 5d, 7a to 7c, 8a to 8b) is shown as one lesson, with a row to switch between its examples. Inside a lesson, the left menu shows the lessons of the current section, a ✓ marks the ones you have run, and **Previous** / **Next** step through the course. The current lesson is kept in the page URL, so a refresh keeps your place.
-
-Lessons still in beta (9 and 12) are marked with a red **BETA** badge. Course lessons with no script (1, 10, 11 and 13) are grayed out and marked with (*), with a note at the bottom of the landing page. On a lesson page, **Open in** (with the Claude logo) opens the lesson on the course website, and **Home** in the left menu returns to the landing page.
+A web app to run the lessons by clicking. Install once, then start it:
 
 ```bash
-pip install -r runner-ui/requirements.txt   # once, with the virtual environment active
+pip install -r runner-ui/requirements.txt
 python run_ui.py
 ```
 
-`python run_ui.py` is the same on macOS, Linux and Windows, and it finds the project's virtual environment by itself, so you do not need to activate it first. Extra arguments go to Streamlit, for example `python run_ui.py --server.port 8600`.
-
-It only reads the scripts in `src/` and runs them as subprocesses, with the same `PYTHONPATH=src` as above, so it needs no changes to the lessons. Every Run calls the API, so it is billed to your account like running the script yourself. The code is in [runner-ui/app.py](runner-ui/app.py).
+`run_ui.py` works the same on macOS, Linux and Windows, and finds the virtual environment itself. Every Run calls the API and is billed to your account. The code is in [runner-ui/app.py](runner-ui/app.py).
 
 ## Dependencies
 
