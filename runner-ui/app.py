@@ -7,6 +7,7 @@ way you would in a terminal. It never changes them.
 """
 
 import ast
+import base64
 import difflib
 import os
 import re
@@ -35,6 +36,8 @@ WARNINGS = {
 }
 
 COURSE_URL = "https://academy.claude.com/courses/claude-platform-101"
+# The Claude logo (transparent PNG) for the "Open the course" box, embedded as a data URI.
+LOGO_BASE64 = base64.b64encode((ROOT / "runner-ui" / "assets" / "claude-logo.png").read_bytes()).decode()
 
 # Landing page text for each course section (matched on the folder name prefix).
 SECTIONS = {
@@ -77,6 +80,12 @@ def _parse_docstring(path_str, modified):
 
 def description(path):
     return _parse_docstring(str(path), path.stat().st_mtime)
+
+
+def course_lesson_url(path):
+    """The course page for this lesson, taken from the link in its docstring (None if there is none)."""
+    match = re.search(r"https://academy\.claude\.com/courses/claude-platform-101/[\w-]+", path.read_text(encoding="utf-8"))
+    return match.group(0) if match else None
 
 
 def lesson_label(path):
@@ -275,16 +284,16 @@ def render_home():
     banner, course = st.columns([4, 1])
     banner.markdown(
         """
-        <div style="height: 9rem; box-sizing: border-box; padding: 1.2rem 1.6rem; border-radius: 14px; color: white;
+        <div style="height: 7.5rem; box-sizing: border-box; padding: 0.4rem 1.6rem; border-radius: 14px; color: white;
                     display: flex; flex-direction: column; justify-content: center;
                     background: linear-gradient(135deg, #1f2937 0%, #4b5563 100%);">
-          <div style="font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.85;">
+          <div style="font-size: 0.85rem; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.85; line-height: 1.2;">
             Practice scripts for the course
           </div>
-          <div style="font-size: 1.9rem; font-weight: 700; line-height: 1.15; margin: 0.2rem 0 0.4rem 0;">
+          <div style="font-size: 2.1rem; font-weight: 700; line-height: 1.1; margin: 0.1rem 0 0.2rem 0;">
             Claude Platform 101
           </div>
-          <div style="font-size: 0.95rem; opacity: 0.95;">
+          <div style="font-size: 1.05rem; line-height: 1.45; opacity: 0.95;">
             Every lesson as a small, runnable Python script. Read the code, press Run, and watch
             what the API sends and what Claude answers.
           </div>
@@ -295,12 +304,12 @@ def render_home():
     course.markdown(
         f"""
         <a href="{COURSE_URL}" target="_blank" style="text-decoration: none;">
-          <div style="height: 9rem; box-sizing: border-box; padding: 1rem; border-radius: 14px; color: white;
+          <div style="height: 7.5rem; box-sizing: border-box; padding: 0.8rem; border-radius: 14px; color: white;
                       display: flex; flex-direction: column; align-items: center; justify-content: center;
-                      text-align: center; background: #a8484f;">
-            <div style="font-size: 1.6rem; line-height: 1;">↗</div>
+                      text-align: center; background: #475569;">
+            <img src="data:image/png;base64,{LOGO_BASE64}" alt="Claude" style="height: 2.4rem; width: auto;" />
             <div style="font-weight: 600; margin-top: 0.4rem;">Open the course</div>
-            <div style="font-size: 0.75rem; opacity: 0.75;">Anthropic Academy</div>
+            <div style="font-size: 0.85rem; opacity: 0.75;">Anthropic Academy</div>
           </div>
         </a>
         """,
@@ -309,15 +318,23 @@ def render_home():
     st.write("")
 
     st.subheader("Pick a lesson", anchor=False)
+    # Larger text on the cards and their lesson buttons, to make them easier to read.
+    st.markdown("<style>[data-testid='stButton'] button p { font-size: 1.1rem; }</style>", unsafe_allow_html=True)
     columns = st.columns(len(groups))
     for column, (folder, scripts) in zip(columns, groups.items()):
         icon, title, text = SECTIONS.get(folder[:2], ("📘", folder, ""))
         with column.container(border=True):
-            st.markdown(f"<div style='font-size: 2.6rem'>{icon}</div>", unsafe_allow_html=True)
-            st.markdown(f"**{title}**")
+            st.markdown(
+                f"<div style='display: flex; align-items: center; justify-content: center; gap: 0.8rem;'>"
+                f"<div style='font-size: 2.6rem; line-height: 1;'>{icon}</div>"
+                f"<div style='font-weight: 600; font-size: 1.4rem;'>{title}</div></div>",
+                unsafe_allow_html=True,
+            )
             lessons_here = lesson_groups(scripts)
-            st.caption(f"{len(lessons_here)} lesson{'s' if len(lessons_here) != 1 else ''}")
-            st.write(text)
+            count = f"{len(lessons_here)} lesson{'s' if len(lessons_here) != 1 else ''}"
+            st.markdown(f"<div style='text-align: center; opacity: 0.6; font-size: 1rem; margin-bottom: 1.4rem;'>{count}</div>",
+                        unsafe_allow_html=True)
+            st.markdown(f"<div style='text-align: center; font-size: 1.15rem; line-height: 1.5; margin-bottom: 2rem;'>{text}</div>", unsafe_allow_html=True)
             for number, paths in lessons_here.items():
                 label = group_label(number, paths) + (BETA_BADGE if number in BETA_LESSONS else "")
                 st.button(label, key=f"home-{folder}-{number}",
@@ -374,6 +391,8 @@ if len(examples) > 1:
 header = title.removeprefix("Claude Platform 101: ") if title else script.stem
 st.header(header + (BETA_BADGE if lesson_number in BETA_LESSONS else ""), anchor=False)
 st.write(intro)
+if course_url := course_lesson_url(script):
+    st.link_button("Open this lesson in the course ↗", course_url)
 
 warning = next((text for prefix, text in WARNINGS.items() if script.name.startswith(prefix)), None)
 if warning:
