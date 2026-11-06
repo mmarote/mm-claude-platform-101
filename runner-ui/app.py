@@ -329,7 +329,6 @@ def render_home():
     )
     st.write("")
 
-    st.subheader("Pick a lesson", anchor=False)
     # Larger text on the cards and their lesson buttons, to make them easier to read.
     st.markdown("<style>[data-testid='stButton'] button p { font-size: 1.1rem; }</style>", unsafe_allow_html=True)
     # One card per course section, in order: its scripted lessons plus the course lessons without a script.
