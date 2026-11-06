@@ -33,6 +33,12 @@ Practice scripts I wrote while following the **Claude Platform 101** course on [
 | [lesson8b-skills-with-scripts.py](src/03-extending-your-agent/lesson8b-skills-with-scripts.py) | same | **+ a script in the skill** ([status-report-with-script](src/03-extending-your-agent/status-report-with-script/SKILL.md)): Claude runs it to draw traffic lights and progress bars. Same request, only the skill folder changes. |
 | [lesson9-mcp.py](src/03-extending-your-agent/lesson9-mcp.py) | [MCP](https://academy.claude.com/courses/claude-platform-101/mcp) | Connects to a public MCP server (DeepWiki, no account needed) with the **beta** MCP connector: `mcp_servers` plus an `mcp_toolset`. Call 1 allows all of the server's tools, call 2 allows only one. |
 
+### `src/04-managed-agents/`
+
+| Script | Lesson | What it demonstrates |
+| --- | --- | --- |
+| [lesson12-your-first-managed-agent.py](src/04-managed-agents/lesson12-your-first-managed-agent.py) | [Your first managed agent](https://academy.claude.com/courses/claude-platform-101/building-your-first-managed-agent) | A **managed agent** (beta): Anthropic runs the loop and a sandbox. We create an agent, an environment and a session, then read the event stream while the agent counts lines in a file. |
+
 ### How the tool lessons are organized
 
 Lessons 4 to 5d are a progression: each file adds one idea to the previous one, so you can diff neighbouring files to see exactly what changed. They all share the same layout:
@@ -96,6 +102,7 @@ PYTHONPATH=src python src/03-extending-your-agent/lesson7c-built-in-tools-client
 PYTHONPATH=src python src/03-extending-your-agent/lesson8a-skills.py
 PYTHONPATH=src python src/03-extending-your-agent/lesson8b-skills-with-scripts.py
 PYTHONPATH=src python src/03-extending-your-agent/lesson9-mcp.py
+PYTHONPATH=src python src/04-managed-agents/lesson12-your-first-managed-agent.py
 ```
 
 On Windows (PowerShell), set the variable on its own line instead:

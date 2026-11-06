@@ -44,6 +44,7 @@ SECTIONS = {
     "01": ("🚀", "What is the Claude Platform", "Make your first API call, then compare the Haiku, Sonnet and Opus models on the same prompt."),
     "02": ("🛠️", "Teaching your agent", "Build the agent loop by hand, add tools, move to the SDK tool runner, then let Claude think before it answers."),
     "03": ("🧩", "Extending your agent", "Use Anthropic's built-in tools (web search, code execution, memory) and teach Claude your way of working with skills."),
+    "04": ("🤖", "Managed agents", "Let Anthropic run the agent loop and sandbox for you, and follow the agent's events as it works."),
 }
 
 st.set_page_config(page_title="Claude Platform 101 - Runner", layout="wide")
@@ -99,7 +100,7 @@ def lesson_label(path):
 # Lessons that come in several examples (5a-5d, 7a-7c, 8a-8b) are shown as ONE lesson with a row of examples.
 LESSON_NAMES = {"5": "Tool use", "7": "Built-in tools", "8": "Skills"}
 # Lessons whose feature is still in beta; the landing page marks them.
-BETA_LESSONS = {"9"}  # MCP connector
+BETA_LESSONS = {"9", "12"}  # MCP connector, managed agents
 BETA_BADGE = " :red[**BETA**]"  # Streamlit markdown: red, bold text (works in buttons and headers)
 
 
@@ -336,7 +337,8 @@ def render_home():
                         unsafe_allow_html=True)
             st.markdown(f"<div style='text-align: center; font-size: 1.15rem; line-height: 1.5; margin-bottom: 2rem;'>{text}</div>", unsafe_allow_html=True)
             for number, paths in lessons_here.items():
-                label = group_label(number, paths) + (BETA_BADGE if number in BETA_LESSONS else "")
+                # A blank line makes the badge a second paragraph, so it sits on its own line in the button.
+                label = group_label(number, paths) + (f"\n\n{BETA_BADGE.strip()}" if number in BETA_LESSONS else "")
                 st.button(label, key=f"home-{folder}-{number}",
                           on_click=open_lesson, args=(paths[0],), use_container_width=True)
 
