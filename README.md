@@ -1,6 +1,6 @@
 # Claude Platform 101 – Practice Scripts
 
-Practice scripts I wrote while following the **Claude Platform 101** course on [Anthropic Academy](https://academy.claude.com/courses/claude-platform-101). Each script in `src/` maps to one lesson, grouped in one folder per course section and is meant for learning and experimentation, not production use.
+Practice scripts I wrote while following the **Claude Platform 101** course on [Anthropic Academy](https://academy.claude.com/courses/claude-platform-101). Each script in `src/` maps to one lesson, grouped in one folder per course section and is meant for learning and experimentation, not production use. Some course lessons (1, 10, 11 and 13) have no Python code, so they have no script here. The runner UI shows them grayed out.
 
 ## Scripts
 
@@ -37,7 +37,7 @@ Practice scripts I wrote while following the **Claude Platform 101** course on [
 
 | Script | Lesson | What it demonstrates |
 | --- | --- | --- |
-| [lesson12-your-first-managed-agent.py](src/04-managed-agents/lesson12-your-first-managed-agent.py) | [Your first managed agent](https://academy.claude.com/courses/claude-platform-101/building-your-first-managed-agent) | A **managed agent** (beta): Anthropic runs the loop and a sandbox. We create an agent, an environment and a session, then read the event stream while the agent counts lines in a file. |
+| [lesson12-your-first-managed-agent.py](src/04-managed-agents/lesson12-your-first-managed-agent.py) | [Your first managed agent](https://academy.claude.com/courses/claude-platform-101/building-your-first-managed-agent) | A **managed agent** (beta): Anthropic runs the loop and a sandbox. We create an agent, an environment and a session, then read the event stream while the agent counts lines in a file. Each run creates a new agent, environment and session in your account, and they stay there. |
 
 ### How the tool lessons are organized
 
@@ -120,6 +120,8 @@ Each call to the API is billed to your account. Lesson 3 calls three models, inc
 A small web app to run the lessons by clicking, instead of typing commands. It opens on a landing page with a card per course section, each listing its lessons by name. Pick one to read its code, press **Run** to see the output, and use **Side by side** to show code and output together. **Diff vs previous** shows what changed since the previous lesson of the section. Claude's final answers appear in green boxes.
 
 A lesson with several examples (5a to 5d, 7a to 7c, 8a to 8b) is shown as one lesson, with a row to switch between its examples. Inside a lesson, the left menu shows the lessons of the current section, a ✓ marks the ones you have run, and **Previous** / **Next** step through the course. The current lesson is kept in the page URL, so a refresh keeps your place.
+
+Lessons still in beta (9 and 12) are marked with a red **BETA** badge. Course lessons with no script (1, 10, 11 and 13) are grayed out and marked with (*), with a note at the bottom of the landing page. On a lesson page, **Open in** (with the Claude logo) opens the lesson on the course website, and **Home** in the left menu returns to the landing page.
 
 ```bash
 pip install -r runner-ui/requirements.txt   # once, with the virtual environment active
