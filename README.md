@@ -76,37 +76,12 @@ The tool-use scripts are intentionally simple:
 
 ## Running
 
-Activate the virtual environment first (`source .venv/bin/activate`). The prompt should then start with `(.venv)`. Without it, `python` isn't found on macOS and the `anthropic` package isn't installed. In VS Code, `.vscode/settings.json` selects this environment, and the VS Code workspace file sets `PYTHONPATH` to `src` for terminals, so in a new VS Code terminal you can run `python src/<folder>/<script>.py` without the `PYTHONPATH=src` prefix.
+Activate the virtual environment, then run scripts from the project root. Scripts need `PYTHONPATH=src` so they can import the shared [models.py](src/models.py) and [log_helper.py](src/log_helper.py). Set it once per terminal:
 
-Run any script from the project root. `PYTHONPATH=src` lets the scripts, which live in subfolders, import the shared [models.py](src/models.py) and [log_helper.py](src/log_helper.py):
+- macOS/Linux: `export PYTHONPATH=src`
+- Windows PowerShell: `$env:PYTHONPATH = "src"`
 
-```bash
-PYTHONPATH=src python src/01-what-is-the-claude-platform/lesson2-first-api-call.py
-PYTHONPATH=src python src/01-what-is-the-claude-platform/lesson3-choosing-the-right-model.py
-PYTHONPATH=src python src/02-teaching-your-agent/lesson4-the-agent-loop.py
-PYTHONPATH=src python src/02-teaching-your-agent/lesson5a-tool-use.py
-PYTHONPATH=src python src/02-teaching-your-agent/lesson5b-tool-use-json-results.py
-PYTHONPATH=src python src/02-teaching-your-agent/lesson5c-tool-runner.py
-PYTHONPATH=src python src/02-teaching-your-agent/lesson5d-tool-runner-with-metadata.py
-PYTHONPATH=src python src/02-teaching-your-agent/lesson6-extended-thinking.py
-PYTHONPATH=src python src/03-extending-your-agent/lesson7a-built-in-tools-server-side-web-search.py
-PYTHONPATH=src python src/03-extending-your-agent/lesson7b-built-in-tools-server-side-code-execution.py
-PYTHONPATH=src python src/03-extending-your-agent/lesson7c-built-in-tools-client-side-memory.py
-PYTHONPATH=src python src/03-extending-your-agent/lesson8a-skills.py
-PYTHONPATH=src python src/03-extending-your-agent/lesson8b-skills-with-scripts.py
-PYTHONPATH=src python src/03-extending-your-agent/lesson9-mcp.py
-PYTHONPATH=src python src/04-managed-agents/lesson12-your-first-managed-agent.py
-```
-
-On Windows (PowerShell), set the variable on its own line instead:
-
-```powershell
-.venv\Scripts\Activate.ps1
-$env:PYTHONPATH = "src"
-python src/01-what-is-the-claude-platform/lesson2-first-api-call.py
-```
-
-Each call to the API is billed to your account. Lesson 3 calls three models, including Opus, so it costs the most.
+Then run any script with `python src/<folder>/<script>.py`. Each API call is billed to your account. Lesson 3 calls three models, including Opus, so it costs the most.
 
 ## Runner UI (optional)
 
