@@ -89,6 +89,9 @@ def lesson_label(path):
 
 # Lessons that come in several examples (5a-5d, 7a-7c, 8a-8b) are shown as ONE lesson with a row of examples.
 LESSON_NAMES = {"5": "Tool use", "7": "Built-in tools", "8": "Skills"}
+# Lessons whose feature is still in beta; the landing page marks them.
+BETA_LESSONS = {"9"}  # MCP connector
+BETA_BADGE = " :red[**BETA**]"  # Streamlit markdown: red, bold text (works in buttons and headers)
 
 
 def lesson_parts(path):
@@ -316,7 +319,8 @@ def render_home():
             st.caption(f"{len(lessons_here)} lesson{'s' if len(lessons_here) != 1 else ''}")
             st.write(text)
             for number, paths in lessons_here.items():
-                st.button(group_label(number, paths), key=f"home-{folder}-{number}",
+                label = group_label(number, paths) + (BETA_BADGE if number in BETA_LESSONS else "")
+                st.button(label, key=f"home-{folder}-{number}",
                           on_click=open_lesson, args=(paths[0],), use_container_width=True)
 
 
@@ -334,7 +338,7 @@ if st.session_state.selected is None:
 else:
     current = Path(st.session_state.selected)
     with st.sidebar:
-        st.button("← All sections", on_click=go_home, use_container_width=True)
+        st.button("🏠 Home", on_click=go_home, use_container_width=True)
         st.subheader(SECTIONS.get(current.parent.name[:2], ("", current.parent.name, ""))[1], anchor=False)
         for number, paths in lesson_groups(groups[current.parent.name]).items():
             st.button(group_label(number, paths), key=f"nav-{number}", on_click=open_lesson, args=(paths[0],),
@@ -367,7 +371,8 @@ if len(examples) > 1:
         column.button(variant_label(example), key=f"example-{example}", on_click=open_lesson, args=(example,),
                       type="primary" if example == script else "secondary", use_container_width=True)
 
-st.header(title.removeprefix("Claude Platform 101: ") if title else script.stem, anchor=False)
+header = title.removeprefix("Claude Platform 101: ") if title else script.stem
+st.header(header + (BETA_BADGE if lesson_number in BETA_LESSONS else ""), anchor=False)
 st.write(intro)
 
 warning = next((text for prefix, text in WARNINGS.items() if script.name.startswith(prefix)), None)
