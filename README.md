@@ -41,14 +41,7 @@ Practice scripts I wrote while following the **Claude Platform 101** course on [
 
 ### How the tool lessons are organized
 
-Lessons 4 to 5d are a progression: each file adds one idea to the previous one, so you can diff neighbouring files to see exactly what changed. They all share the same layout:
-
-1. A docstring with **WHAT'S NEW** and **UNCHANGED** sections.
-2. `SECTION 1: TOOLS` – how tools are defined.
-3. `SECTION 2: TOOL EXECUTION` – how a tool call is run.
-4. `SECTION 3: AGENT LOOP` – the conversation with Claude.
-
-Anything added or changed compared with the previous file is marked with a `# NEW:` comment. The `log_*` calls come from [src/log_helper.py](src/log_helper.py); they only print what is happening and aren't part of the lessons.
+Lessons 4 to 5d each add one idea to the previous file, so you can diff neighbouring files to see what changed. Changes are marked with `# NEW:` comments, and the `log_*` calls come from [src/log_helper.py](src/log_helper.py) and aren't part of the lesson.
 
 ### Known simplifications
 
