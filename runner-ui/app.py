@@ -60,11 +60,11 @@ GAP_NOTE = "These lessons are explained on the course page and have no practical
 
 st.set_page_config(page_title="Claude Platform 101 - Runner", layout="wide")
 
-# Hide the Deploy button and the three-dots menu in the top right corner.
+# The Deploy button stays hidden; the three-dots menu (theme settings) is shown.
 st.markdown(
     """
     <style>
-    [data-testid="stAppDeployButton"], [data-testid="stMainMenu"] { display: none; }
+    [data-testid="stAppDeployButton"] { display: none; }
     </style>
     """,
     unsafe_allow_html=True,
