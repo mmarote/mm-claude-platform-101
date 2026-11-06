@@ -1,6 +1,10 @@
 """
 Claude Platform 101: Lesson 5c - Decorated tools and the tool runner
 
+Writing a JSON schema and the loop by hand is repetitive. Here the SDK builds
+the schema from Python type hints and docstrings, and a tool runner runs the
+loop for us.
+
 https://academy.claude.com/courses/claude-platform-101/what-is-tool-use
 
 NOTE: These are custom tools, not MCP. We write and maintain the schemas and

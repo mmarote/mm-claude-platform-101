@@ -1,6 +1,9 @@
 """
 Claude Platform 101: Lesson 5b - Structured tool results
 
+Lesson 5a's tools returned plain text. Here they return JSON, which Claude can
+read more reliably than free text.
+
 https://academy.claude.com/courses/claude-platform-101/what-is-tool-use
 
 NOTE: These are custom tools, not MCP. We write and maintain the schemas and
