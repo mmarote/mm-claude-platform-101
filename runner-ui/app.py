@@ -45,7 +45,7 @@ SECTIONS = {
     "02": ("🛠️", "Teaching your agent", "Build the agent loop by hand, add tools, move to the SDK tool runner, then let Claude think before it answers."),
     "03": ("🧩", "Extending your agent", "Use Anthropic's built-in tools (web search, code execution, memory) and teach Claude your way of working with skills."),
     "04": ("🤖", "Managed agents", "Let Anthropic run the agent loop and sandbox for you, and follow the agent's events as it works."),
-    "05": ("💻", "Building with Claude Code", "Build with the Claude Platform from Claude Code. The course example is in TypeScript."),
+    "05": ("💻", "Building with Claude Code", "Build with the Claude Platform from Claude Code."),
 }
 
 # Course lessons with no Python script, shown grayed out on the landing page:
@@ -345,16 +345,18 @@ def render_home():
     for column, (prefix, folder, icon, title, text, lessons_here, gaps) in zip(columns, cards):
         with column.container(border=True):
             st.markdown(
-                f"<div style='display: flex; align-items: center; justify-content: center; gap: 0.8rem;'>"
+                # Fixed heights for the header, count and description, so the headers and the lessons
+                # line up across the cards whatever the length of each description.
+                f"<div style='display: flex; align-items: center; justify-content: center; gap: 0.8rem; height: 4.5rem;'>"
                 f"<div style='font-size: 2.6rem; line-height: 1;'>{icon}</div>"
-                f"<div style='font-weight: 600; font-size: 1.4rem;'>{title}</div></div>",
+                f"<div style='font-weight: 600; font-size: 1.4rem; line-height: 1.2;'>{title}</div></div>",
                 unsafe_allow_html=True,
             )
             count_total = len(lessons_here) + len(gaps)
             count = f"{count_total} lesson{'s' if count_total != 1 else ''}"
-            st.markdown(f"<div style='text-align: center; opacity: 0.6; font-size: 1rem; margin-bottom: 1.4rem;'>{count}</div>",
+            st.markdown(f"<div style='text-align: center; opacity: 0.6; font-size: 1rem; height: 1.6rem; margin-bottom: 1.4rem;'>{count}</div>",
                         unsafe_allow_html=True)
-            st.markdown(f"<div style='text-align: center; font-size: 1.15rem; line-height: 1.5; margin-bottom: 2rem;'>{text}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='text-align: center; font-size: 1.15rem; line-height: 1.5; height: 8rem; margin-bottom: 2rem;'>{text}</div>", unsafe_allow_html=True)
             entries = [(int(number), "script", number, paths) for number, paths in lessons_here.items()]
             entries += [(int(number), "gap", number, (name, COURSE_URL + "/" + slug)) for _, number, name, slug in gaps]
             for _, kind, number, payload in sorted(entries, key=lambda entry: entry[0]):
