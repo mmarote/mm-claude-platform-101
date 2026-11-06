@@ -117,11 +117,13 @@ def log_turn(turn: int, note=None) -> None:
 def log_model_request(
     *, model, max_tokens=None, messages=None, system=None, tools=None,
     thinking=None, output_config=None, container=None,
+    betas=None, mcp_servers=None,
 ) -> None:
     """Log the request about to be sent to Claude.
 
     `thinking` and `output_config` are only printed when given (lesson 6 on),
     and so is `container` (lesson 8, skills).
+    `betas` and `mcp_servers` are printed for lesson 9 (MCP).
     """
     if not ENABLED:
         return
@@ -135,6 +137,10 @@ def log_model_request(
         print(f"   output_config: {_show(output_config, indent=None)}")
     if container:
         print(f"   container:     {_show(container, indent=None)}")
+    if betas:
+        print(f"   betas:         {_show(betas, indent=None)}")
+    if mcp_servers:
+        print(f"   mcp_servers:   {_show(mcp_servers, indent=None)}")
     if system:
         print(f"   system:     {_show(system)}")
     if tools:
@@ -153,9 +159,10 @@ def log_model_response(response) -> None:
     for block in response.content:
         if block.type == "text":
             print(f"   text:        {_show(block.text)}")
-        elif block.type in ("tool_use", "server_tool_use"):
+        elif block.type in ("tool_use", "server_tool_use", "mcp_tool_use"):
             # Claude doesn't run the tool. It returns the tool name and the input as separate fields.
-            # (server_tool_use = a built-in tool that Anthropic runs for us, e.g. web search.)
+            # (server_tool_use = a built-in tool that Anthropic runs for us, e.g. web search.
+            # mcp_tool_use = a tool on an MCP server, which Anthropic calls for us.)
             print(f"   {block.type}:")
             print(f"      name:  {block.name}")
             print(f"      input: {_show(block.input, indent=None)}")

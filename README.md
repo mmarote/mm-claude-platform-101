@@ -31,6 +31,7 @@ Practice scripts I wrote while following the **Claude Platform 101** course on [
 | [lesson7c-built-in-tools-client-side-memory.py](src/03-extending-your-agent/lesson7c-built-in-tools-client-side-memory.py) | same | The built-in **memory** client tool. Two separate conversations: Claude saves a fact in the first and reads it back in the second. The SDK helper runs the commands on a temp folder, so it is safe. |
 | [lesson8a-skills.py](src/03-extending-your-agent/lesson8a-skills.py) | [Skills](https://academy.claude.com/courses/claude-platform-101/skills) | Uploads a custom skill ([status-report-text](src/03-extending-your-agent/status-report-text/SKILL.md), instructions only) and attaches it to a request, so Claude writes a status report in our team's format. Each run uploads a new copy of the skill to your account. |
 | [lesson8b-skills-with-scripts.py](src/03-extending-your-agent/lesson8b-skills-with-scripts.py) | same | **+ a script in the skill** ([status-report-with-script](src/03-extending-your-agent/status-report-with-script/SKILL.md)): Claude runs it to draw traffic lights and progress bars. Same request, only the skill folder changes. |
+| [lesson9-mcp.py](src/03-extending-your-agent/lesson9-mcp.py) | [MCP](https://academy.claude.com/courses/claude-platform-101/mcp) | Connects to a public MCP server (DeepWiki, no account needed) with the **beta** MCP connector: `mcp_servers` plus an `mcp_toolset`. Call 1 allows all of the server's tools, call 2 allows only one. |
 
 ### How the tool lessons are organized
 
@@ -94,6 +95,7 @@ PYTHONPATH=src python src/03-extending-your-agent/lesson7b-built-in-tools-server
 PYTHONPATH=src python src/03-extending-your-agent/lesson7c-built-in-tools-client-side-memory.py
 PYTHONPATH=src python src/03-extending-your-agent/lesson8a-skills.py
 PYTHONPATH=src python src/03-extending-your-agent/lesson8b-skills-with-scripts.py
+PYTHONPATH=src python src/03-extending-your-agent/lesson9-mcp.py
 ```
 
 On Windows (PowerShell), set the variable on its own line instead:
